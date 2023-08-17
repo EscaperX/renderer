@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.2)
 
 project(renderer)
+
+add_definitions(-DBUILD_CONFIG_DEBUG=$<IF:$<CONFIG:Debug>,1,0>)
+
+
 include(ExternalProject)
 include(cmake/target.cmake)
 include(cmake/3rdparty.cmake)

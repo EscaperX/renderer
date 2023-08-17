@@ -27,60 +27,6 @@ function(expand_3rd_path_expression)
     set(${PARAMS_OUTPUT} ${RESULT} PARENT_SCOPE)
 endfunction()
 
-function(get_3rd_platform_path)
-    cmake_parse_arguments(PARAMS "" "OUTPUT" "INPUT" ${ARGN})
-
-    set(PLATFORM_KEYWORDS "Windows;Darwin;Linux")
-
-    # match a platform
-    set(HAS_KEYWORDS FALSE)
-    foreach (I ${PARAMS_INPUT})
-        foreach (K ${PLATFORM_KEYWORDS})
-            if (${I} STREQUAL ${K})
-                set(HAS_KEYWORDS TRUE)
-                set(RESULT ${I})
-                break()
-            endif()
-        endforeach()
-
-        if (${HAS_KEYWORDS})
-            break()
-        endif()
-    endforeach()
-
-    # I don't understand
-#     set(START_LOG FALSE)
-#     foreach (I ${PARAMS_INPUT})
-#         if ((NOT ${START_LOG}) AND (${I} STREQUAL ${CMAKE_SYSTEM_NAME}))
-#             set(START_LOG TRUE)
-#             continue()
-#         endif()
-#
-#         if (NOT ${START_LOG})
-#             continue()
-#         endif()
-#
-#         set(END_LOG FALSE)
-#         foreach (K ${PLATFORM_KEYWORDS})
-#             if (${K} STREQUAL ${I})
-#                 set(END_LOG TRUE)
-#                 break()
-#             endif()
-#         endforeach()
-#
-#         if (${END_LOG})
-#             break()
-#         endif()
-#
-#         list(APPEND RESULT ${I})
-#     endforeach ()
-
-    if (${HAS_KEYWORDS})
-        set(${PARAMS_OUTPUT} ${RESULT} PARENT_SCOPE)
-    else()
-        set(${PARAMS_OUTPUT} ${PARAMS_INPUT} PARENT_SCOPE)
-    endif()
-endfunction()
 
 function(add_cmake_project)
     cmake_parse_arguments(PARAMS "" "NAME;PLATFORM;" "CMAKE_ARG;INCLUDE;LINK;LIB;RUNTIME_DEP" ${ARGN})
@@ -116,15 +62,10 @@ function(add_cmake_project)
             BINARY_DIR ${BINARY_DIR}
             INSTALL_DIR ${INSTALL_DIR}
         )
-        get_3rd_platform_path(
-            INPUT ${R_INCLUDE}
-            OUTPUT P_INCLUDE
-        )
         set_target_properties(
             ${NAME} PROPERTIES
-            3RD_INCLUDE "${P_INCLUDE}"
+            3RD_INCLUDE "${R_INCLUDE}"
         )
-        message("INCLUDE path: ${P_INCLUDE}")
     endif()
 
     if (DEFINED PARAMS_LINK)
@@ -135,15 +76,10 @@ function(add_cmake_project)
             BINARY_DIR ${BINARY_DIR}
             INSTALL_DIR ${INSTALL_DIR}
         )
-        get_3rd_platform_path(
-            INPUT ${R_LINK}
-            OUTPUT P_LINK
-        )
         set_target_properties(
             ${NAME} PROPERTIES
-            3RD_LINK "${P_LINK}"
+            3RD_LINK "${R_LINK}"
         )
-        message("LINK path: ${P_LINK}")
     endif()
 
     if (DEFINED PARAMS_LIB)
@@ -154,32 +90,28 @@ function(add_cmake_project)
             BINARY_DIR ${BINARY_DIR}
             INSTALL_DIR ${INSTALL_DIR}
         )
-        get_3rd_platform_path(
-            INPUT ${R_LIB}
-            OUTPUT P_LIB
-        )
+
         set_target_properties(
             ${NAME} PROPERTIES
-            3RD_LIB "${P_LIB}"
+            3RD_LIB "${R_LIB}"
         )
-        message("LIB path: ${P_LIB}")
     endif()
 
-    if (DEFINED PARAMS_RUNTIME_DEP)
-        expand_3rd_path_expression(
-            INPUT ${PARAMS_RUNTIME_DEP}
-            OUTPUT R_RUNTIME_DEP
-            SOURCE_DIR ${SOURCE_DIR}
-            BINARY_DIR ${BINARY_DIR}
-            INSTALL_DIR ${INSTALL_DIR}
-        )
-        get_3rd_platform_path(
-            INPUT ${R_RUNTIME_DEP}
-            OUTPUT P_RUNTIME_DEP
-        )
-        set_target_properties(
-            ${NAME} PROPERTIES
-            3RD_RUNTIME_DEP "${P_RUNTIME_DEP}"
-        )
-    endif()
+#    if (DEFINED PARAMS_RUNTIME_DEP)
+#        expand_3rd_path_expression(
+#            INPUT ${PARAMS_RUNTIME_DEP}
+#            OUTPUT R_RUNTIME_DEP
+#            SOURCE_DIR ${SOURCE_DIR}
+#            BINARY_DIR ${BINARY_DIR}
+#            INSTALL_DIR ${INSTALL_DIR}
+#        )
+#        get_3rd_platform_path(
+#            INPUT ${R_RUNTIME_DEP}
+#            OUTPUT P_RUNTIME_DEP
+#        )
+#        set_target_properties(
+#            ${NAME} PROPERTIES
+#            3RD_RUNTIME_DEP "${P_RUNTIME_DEP}"
+#        )
+#    endif()
 endfunction(add_cmake_project)
