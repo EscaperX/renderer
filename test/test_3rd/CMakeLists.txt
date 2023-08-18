@@ -1,0 +1,2 @@
+add_subdirectory(test_spdlog)
+add_subdirectory(test_json)

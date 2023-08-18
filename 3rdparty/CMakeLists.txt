@@ -7,3 +7,10 @@ add_cmake_project(
     LIB spdlog$<IF:$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:MSVC>>,d,>
 #    LIB libspdlog
 )
+
+add_cmake_project(
+        NAME json
+        PLATFORM All
+        INCLUDE $<INSTALL_DIR>/include
+        LIB json
+)
