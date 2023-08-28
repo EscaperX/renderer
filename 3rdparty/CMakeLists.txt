@@ -22,9 +22,15 @@ ExternalProject_Add(
     SOURCE_DIR ${3RD_SOURCE_DIR}/nlohmann
     BINARY_DIR ${3RD_BINARY_DIR}/nlohmann
     INSTALL_DIR ${3RD_INSTALL_DIR}/nlohmann
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DJSON_BuildTests=OFF
-    BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config $<CONFIG>
-    INSTALL_COMMAND ${CMAKE_COMMAND} --install <BINARY_DIR> --config $<CONFIG>
+    PREFIX ${3RD_SOURCE_DIR}/nlohmann
+    URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.hpp
+    DOWNLOAD_NO_EXTRACT 1
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND
+        ${CMAKE_COMMAND} -E make_directory <INSTALL_DIR>/include/nlohmann &&
+        ${CMAKE_COMMAND} -E copy
+            <SOURCE_DIR>/src/json.hpp <INSTALL_DIR>/include/nlohmann
 )
 
 # eigen
