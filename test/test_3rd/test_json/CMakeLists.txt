@@ -1,5 +1,6 @@
-my_add_executable(
-        NAME test_json
-        SRC main.cpp
-        LIB json
-)
+add_executable(test_json main.cpp)
+add_dependencies(test_json dep_json)
+ExternalProject_Get_Property(dep_json install_dir)
+target_include_directories(test_json PRIVATE ${install_dir}/include)
+# target_link_directories(test_json ${3RD_LIB_DIR}/lib)
+# target_link_libraries(test_json ${4})
