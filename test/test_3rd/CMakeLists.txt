@@ -1,2 +1,6 @@
 add_subdirectory(test_spdlog)
 add_subdirectory(test_json)
+add_subdirectory(test_eigen)
+add_subdirectory(test_stb)
+add_subdirectory(test_tinyexr)
+add_subdirectory(test_pugixml)
