@@ -1,5 +1,6 @@
 #pragma once
 #include<vector>
+#include "math-header.hpp"
 
 namespace nanami
 {
@@ -17,14 +18,18 @@ namespace nanami
                 data.resize(w * h);
                 memset(data.data(), 0, sizeof(T) * w *  h);
             }
-            Image(const Image& img) {
-                width = img.width;
-                height = img.height;
-                data = img.data;
-            }
+            // Image(const Image& img) {
+            //     width = img.width;
+            //     height = img.height;
+            //     data = img.data;
+            // }
 
             int width, height;
             std::vector<T> data;
         };
+
+        using Image3f = Image<math::Vector3f>;
+        using Image1f = Image<float>;
+
     }
 }
