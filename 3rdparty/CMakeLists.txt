@@ -87,22 +87,22 @@ ExternalProject_Add(
 )
 
 
-# tev
-
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    file(
-        DOWNLOAD "https://github.com/Tom94/tev/releases/download/v1.26/tev.appimage"
-        "${3RD_SOURCE_DIR}/tev/tev.appimage"
-    )
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    file(
-        DOWNLOAD "https://github.com/Tom94/tev/releases/download/v1.26/tev.exe"
-        "${3RD_SOURCE_DIR}/tev/tev.exe"
-    )
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    file(
-        DOWNLOAD "https://github.com/Tom94/tev/releases/download/v1.26/tev.dmg"
-        "${3RD_SOURCE_DIR}/tev/tev.dmg"
-    )
-endif()
+# # tev
+#
+# if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+#     file(
+#         DOWNLOAD "https://github.com/Tom94/tev/releases/download/v1.26/tev.appimage"
+#         "${3RD_SOURCE_DIR}/tev/tev.appimage"
+#     )
+# elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+#     file(
+#         DOWNLOAD "https://github.com/Tom94/tev/releases/download/v1.26/tev.exe"
+#         "${3RD_SOURCE_DIR}/tev/tev.exe"
+#     )
+# elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+#     file(
+#         DOWNLOAD "https://github.com/Tom94/tev/releases/download/v1.26/tev.dmg"
+#         "${3RD_SOURCE_DIR}/tev/tev.dmg"
+#     )
+# endif()
 

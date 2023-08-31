@@ -1,4 +1,6 @@
 option(USE_EIGEN "" ON)
+add_subdirectory(utils)
+
 
 add_executable(renderer main.cpp)
 
@@ -9,3 +11,4 @@ target_include_directories(renderer PRIVATE ${install_dir}/include/eigen3)
 if(USE_EIGEN)
     target_compile_definitions(renderer PRIVATE "-DUSE_EIGEN")
 endif(USE_EIGEN)
+

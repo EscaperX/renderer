@@ -8,17 +8,11 @@
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 
+#include <cstring>
+#include <iostream>
+
 namespace nanami::util
 {
-    IPCConnect::IPCConnect(const std::string& host)
-        : pimpl(std::make_unique<impl>(host))
-    {
-    }
-
-    IPCConnect::~IPCConnect() {}
-
-    auto IPCConnect::connected() const -> bool { return pimpl->connected(); }
-
     struct IPCConnect::impl
     {
         impl(const std::string& host)
@@ -31,40 +25,60 @@ namespace nanami::util
             port = std::string(host.begin() + split + 1, host.end());
             connect();
         }
+        ~impl()
+        {
+            if (connected()) {
+                disconnect();
+            }
+        }
         auto connected() const -> bool {
             return socketfd != -1;
         }
         auto connect() -> void {
 
-            addrinfo hints = {}, *addrinfo;
-            hints.ai_family = PF_UNSPEC;
-            hints.ai_socktype = SOCK_STREAM;
-            int err = getaddrinfo(url.c_str(), port.c_str(), &hints, &addrinfo);
-            if (err) {
-                exit(0);
+            socketfd = socket(AF_INET, SOCK_STREAM, 0);
+            struct sockaddr_in serv_addr;
+            memset(&serv_addr, 0, sizeof(serv_addr));
+            serv_addr.sin_family = AF_INET;
+            serv_addr.sin_addr.s_addr = inet_addr(url.c_str());
+            serv_addr.sin_port = htons(std::atoi(port.c_str()));
+            if (::connect(socketfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1) {
+                socketfd = -1;
+                std::cout << "Connect failed" << std::endl;
+                exit(-1);
             }
+
+        }
+        auto disconnect() -> void {
+            ::close(socketfd);
             socketfd = -1;
-            for (struct addrinfo *ptr = addrinfo; ptr; ptr = ptr->ai_next) {
-                socketfd = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
-                if (socketfd == -1) {
-                    continue;
-                }
-
-                if (::connect(socketfd, ptr->ai_addr, ptr->ai_socktype) == -1) {
-                    ::close(socketfd);
-                    socketfd = -1;
-                    continue;
-                }
-
-                break;
+        };
+        auto send(const uint8_t* message, int len) const -> bool {
+            if (!connected()) {
+                return false;
             }
-
-            freeaddrinfo(addrinfo);
-
+            int bytesSent =
+                ::send(socketfd, message, len, 0);
+            if (bytesSent == len)
+                return true;
+            return false;
         }
     private:
         std::string url, port;
         int socketfd;
     };
+
+    IPCConnect::IPCConnect(const std::string& host)
+        : pimpl(std::make_unique<impl>(host))
+    {
+    }
+
+    IPCConnect::~IPCConnect() {}
+
+    auto IPCConnect::connected() const -> bool { return pimpl->connected(); }
+    auto IPCConnect::send(const uint8_t* message, int len) const -> bool { return pimpl->send(message, len); }
+
+    std::unique_ptr<IPCConnect> IPCConnect::inst;
+
 
 }

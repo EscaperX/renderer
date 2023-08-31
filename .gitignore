@@ -2,3 +2,4 @@
 cmake-*/
 build
 3rdparty/nlohmann/*
+.vscode/
