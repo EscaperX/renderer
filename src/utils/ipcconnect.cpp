@@ -24,6 +24,6 @@ namespace nanami::util
     auto IPCConnect::connected() const -> bool { return pimpl->connected(); }
     auto IPCConnect::send(const uint8_t *message, int len) const -> bool { return pimpl->send(message, len); }
 
-    std::unique_ptr<IPCConnect> IPCConnect::inst;
+    // std::unique_ptr<IPCConnect> IPCConnect::inst;
 
 }
