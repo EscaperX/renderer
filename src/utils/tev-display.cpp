@@ -13,11 +13,6 @@ namespace nanami::util
         UpdateImage = 3,
         CreateImage = 4,
     };
-    //     std::unique_ptr<TevDisplay> TevDisplay::inst;
-    //
-    //     TevDisplay::TevDisplay(const std::string& host):ipc(host)
-    //     {
-    //     }
 
     TevDisplay::TevDisplay(const std::string &host) : ipc(host)
     {
@@ -60,7 +55,9 @@ namespace nanami::util
         Serialize(&buffer, name);
         Serialize(&buffer, '\0'); // channel end
 
-        return TevDisplay::instance().send(buffer_head, buffer_len);
+        bool flag = TevDisplay::instance().send(buffer_head, buffer_len);
+        delete[] buffer_head;
+        return flag;
     }
 
     auto close_image(const std::string &name) -> bool
@@ -72,7 +69,9 @@ namespace nanami::util
         Serialize(&buffer, OperationType::CloseImage);
         Serialize(&buffer, name);
 
-        return TevDisplay::instance().send(buffer_head, buffer_len);
+        bool flag = TevDisplay::instance().send(buffer_head, buffer_len);
+        delete[] buffer_head;
+        return flag;
     }
 
     bool reload_image(const std::string &name)
@@ -86,7 +85,9 @@ namespace nanami::util
         Serialize(&buffer, grabFocus);
         Serialize(&buffer, name);
 
-        return TevDisplay::instance().send(buffer_head, buffer_len);
+        bool flag = TevDisplay::instance().send(buffer_head, buffer_len);
+        delete[] buffer_head;
+        return flag;
     }
 
     auto create_image(const std::string &name, int width, int height, const std::vector<std::string> &channel) -> bool
@@ -110,6 +111,8 @@ namespace nanami::util
         for (auto &str : channel)
             Serialize(&buffer, str);
 
-        return TevDisplay::instance().send(buffer_head, buffer_len);
+        bool flag = TevDisplay::instance().send(buffer_head, buffer_len);
+        delete[] buffer_head;
+        return flag;
     }
 }

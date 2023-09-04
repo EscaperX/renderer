@@ -11,7 +11,22 @@ namespace nanami::util
     struct TevDisplay
     {
     public:
+        /**
+         * @brief           Initialize an instance of TevDisplay.
+         *
+         * @param host      Host of Tev should be provided at the first time when calling this function
+         * @return TevDisplay&
+         */
         static auto instance(const std::string &host = "") -> TevDisplay &;
+
+        /**
+         * @brief           Simply forward the message to ipc connection.
+         *
+         * @param message   Message in format [uint32_t total_length_in_bytes][byte operation_type][byte[] operation_specific_payload]
+         * @param len
+         * @return true
+         * @return false
+         */
         auto send(const uint8_t *message, int len) -> bool;
 
     private:
