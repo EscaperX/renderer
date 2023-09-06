@@ -13,3 +13,6 @@
 [submodule "3rdparty/tinyexr"]
 	path = 3rdparty/tinyexr
 	url = https://github.com/syoyo/tinyexr.git
+[submodule "3rdparty/assimp"]
+	path = 3rdparty/assimp
+	url = https://github.com/assimp/assimp.git
