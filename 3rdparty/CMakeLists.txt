@@ -86,6 +86,49 @@ ExternalProject_Add(
     INSTALL_COMMAND ${CMAKE_COMMAND} --install <BINARY_DIR> --config $<CONFIG>
 )
 
+#glfw
+ExternalProject_Add(
+    dep_glfw
+    SOURCE_DIR ${3RD_SOURCE_DIR}/glfw
+    BINARY_DIR ${3RD_BINARY_DIR}/glfw
+    INSTALL_DIR ${3RD_INSTALL_DIR}/glfw
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_DOCS=OFF
+    BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config $<CONFIG>
+    INSTALL_COMMAND ${CMAKE_COMMAND} --install <BINARY_DIR> --config $<CONFIG>
+)
+
+#glad
+ExternalProject_Add(
+    dep_glad
+    SOURCE_DIR ${3RD_SOURCE_DIR}/glad
+    BINARY_DIR ${3RD_BINARY_DIR}/glad
+    INSTALL_DIR ${3RD_INSTALL_DIR}/glad
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND
+        ${CMAKE_COMMAND} -E make_directory <INSTALL_DIR>/include/glad &&
+        ${CMAKE_COMMAND} -E copy
+            <SOURCE_DIR>/gl.h <INSTALL_DIR>/include/glad
+)
+#glm
+ExternalProject_Add(
+    dep_glm
+    SOURCE_DIR ${3RD_SOURCE_DIR}/glm
+    BINARY_DIR ${3RD_BINARY_DIR}/glm
+    INSTALL_DIR ${3RD_INSTALL_DIR}/glm
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DBUILD_TESTING=OFF
+    BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config $<CONFIG>
+    INSTALL_COMMAND ${CMAKE_COMMAND} --install <BINARY_DIR> --config $<CONFIG>
+)
+
+
+# add_custom_target(dep_glad
+#     COMMAND ${CMAKE_COMMAND} -E  make_directory ${3RD_INSTALL_DIR}/glad/include &&
+#             ${CMAKE_COMMAND} -E copy ${3RD_SOURCE_DIR}/glad/gl.h ${3RD_INSTALL_DIR}/glad/include
+# )
+# set_target_properties(dep_glad PROPERTIES install_dir "${3RD_INSTALL_DIR}/glad")
+
+# add_dependencies(dep_glad all)
 
 # # tev
 #
