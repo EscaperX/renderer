@@ -23,12 +23,23 @@ namespace nanami::geometry
         {
             std::vector<Vector3f> positions;
             std::vector<size_t> indices;
-            std::vector<Vector3f> textures;
+            std::vector<Vector3f> normals;
+            std::vector<Vector2f> uvs;
 
             for (size_t i = 0; i < mesh->mNumVertices; i++)
             {
                 positions.emplace_back(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+                normals.emplace_back(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+                if (mesh->mTextureCoords[0])
+                    uvs.emplace_back(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
             }
+            for (size_t i = 0; i < mesh->mNumFaces; i++)
+            {
+                aiFace face = mesh->mFaces[i];
+                for (size_t j = 0; j < face.mNumIndices; j++)
+                    indices.push_back(face.mIndices[j]);
+            }
+            return TriangleMesh(positions, normals, uvs, indices);
         };
 
         auto travel_node = [&res](aiNode *node, const aiScene *scene) -> void

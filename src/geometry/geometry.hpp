@@ -25,6 +25,16 @@ namespace nanami
 
         struct TriangleMesh
         {
+            // Todo: maybe use move semantics
+            TriangleMesh(const std::vector<Vector3f> &ps, const std::vector<Vector3f> &ns,
+                         const std::vector<Vector2f> &texs, const std::vector<size_t> &ids)
+            {
+                indices = ids;
+                positions = ps;
+                normals = ns;
+                uvs = texs;
+                indices = ids;
+            }
             std::vector<size_t> indices;
             std::vector<Vector3f> positions;
             std::vector<Vector3f> normals;
