@@ -107,8 +107,12 @@ ExternalProject_Add(
     BUILD_COMMAND ""
     INSTALL_COMMAND
         ${CMAKE_COMMAND} -E make_directory <INSTALL_DIR>/include/glad &&
+        ${CMAKE_COMMAND} -E make_directory <INSTALL_DIR>/include/KHR &&
         ${CMAKE_COMMAND} -E copy
             <SOURCE_DIR>/gl.h <INSTALL_DIR>/include/glad
+            <SOURCE_DIR>/glad.h <INSTALL_DIR>/include/glad &&
+        ${CMAKE_COMMAND} -E copy
+            <SOURCE_DIR>/KHR/khrplatform.h <INSTALL_DIR>/include/KHR/
 )
 #glm
 ExternalProject_Add(
