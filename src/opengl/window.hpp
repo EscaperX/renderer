@@ -48,7 +48,7 @@ public:
 
         init_shader();
         glUseProgram(shader_program);
-        glUniform1i(glGetUniformLocation(shader_program, "screenTexture", 0));
+        glUniform1i(glGetUniformLocation(shader_program, "screenTexture"), 0);
 
         // register texture information
         glGenTextures(1, &_texture);
@@ -91,18 +91,18 @@ public:
         GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertexShader, 1, &vs_shader, NULL);
         glCompileShader(vertexShader);
-        CheckShaderCompileSuccess(vertexShader);
+        // CheckShaderCompileSuccess(vertexShader);
 
         GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fragmentShader, 1, &fs_shader, NULL);
         glCompileShader(fragmentShader);
-        CheckShaderCompileSuccess(fragmentShader);
+        // CheckShaderCompileSuccess(fragmentShader);
 
         GLuint shaderProgram = glCreateProgram();
         glAttachShader(shaderProgram, vertexShader);
         glAttachShader(shaderProgram, fragmentShader);
         glLinkProgram(shaderProgram);
-        CheckShaderLinkSucess(shaderProgram);
+        // CheckShaderLinkSucess(shaderProgram);
 
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
@@ -116,15 +116,15 @@ public:
 
         glBindTexture(GL_TEXTURE_2D, _texture);
 
-        float *data = new float[w * h * 3];
-        for (int i = 0; i < w * h * 3; i += 3)
+        float *data = new float[_windowWidth * _windowHeight * 3];
+        for (int i = 0; i < _windowWidth * _windowWidth * 3; i += 3)
         {
             data[i] = 1.0f;
             data[i + 1] = 0.0f;
             data[i + 2] = 0.0f;
         }
 
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h,
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _windowWidth, _windowWidth,
                         GL_RGB, GL_FLOAT, (void *)(data));
 
         delete[] data;
