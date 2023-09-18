@@ -31,7 +31,7 @@ class Window : public Application
 public:
     Window(int w = 1280, int h = 720) : Application(w, h)
     {
-
+        data = new float[w * h * 3];
         // register vertices information for rectangle canvas
         glGenVertexArrays(1, &_vao);
         glGenBuffers(1, &_vbo);
@@ -84,6 +84,7 @@ public:
     }
     ~Window()
     {
+        delete[] data;
         glDeleteProgram(shader_program);
     }
     void init_shader()
@@ -116,18 +117,15 @@ public:
 
         glBindTexture(GL_TEXTURE_2D, _texture);
 
-        float *data = new float[_windowWidth * _windowHeight * 3];
-        for (int i = 0; i < _windowWidth * _windowWidth * 3; i += 3)
+        for (int i = 0; i < _windowWidth * _windowHeight * 3; i += 3)
         {
             data[i] = 1.0f;
             data[i + 1] = 0.0f;
             data[i + 2] = 0.0f;
         }
 
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _windowWidth, _windowWidth,
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _windowWidth, _windowHeight,
                         GL_RGB, GL_FLOAT, (void *)(data));
-
-        delete[] data;
 
         glUseProgram(shader_program);
 
@@ -158,6 +156,7 @@ private:
         1.0f, -1.0f, 1.0f, 1.0f, // 1.0f, 0.0f,
         1.0f, 1.0f, 1.0f, 0.0f   // 1.0f, 1.0f
     };
+    float *data;
     GLuint _vao;
     GLuint _vbo;
     GLuint _texture;

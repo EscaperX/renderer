@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <string>
+#include <thread>
 #include <stdexcept>
 
 #include <glad/glad.h>
@@ -18,7 +19,12 @@ public:
 
     void run();
 
+    // void start();
+
+    // void stop();
+
 protected:
+    // std::thread thread;
     /* window info */
     GLFWwindow *_window = nullptr;
     std::string _windowTitle;

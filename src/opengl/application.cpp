@@ -53,7 +53,14 @@ Application::~Application()
 
     glfwTerminate();
 }
-
+// void Application::start()
+// {
+//     thread = std::thread(&Application::run, this);
+// }
+// void Application::stop()
+// {
+//     thread.join();
+// }
 void Application::run()
 {
     while (!glfwWindowShouldClose(_window))
