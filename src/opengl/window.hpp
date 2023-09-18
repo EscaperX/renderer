@@ -1,8 +1,13 @@
 #pragma once
 
 #include "application.hpp"
+#include "resouce.hpp"
 // #include "image.h"
 #include <vector>
+
+float data[1280 * 720 * 3] = {};
+std::mutex data_mutex;
+bool terminal_flag = false;
 
 const char *vs_shader = "#version 330 core\n"
                         "layout (location = 0) in vec2 position;\n"
@@ -31,7 +36,6 @@ class Window : public Application
 public:
     Window(int w = 1280, int h = 720) : Application(w, h)
     {
-        data = new float[w * h * 3];
         // register vertices information for rectangle canvas
         glGenVertexArrays(1, &_vao);
         glGenBuffers(1, &_vbo);
@@ -84,7 +88,6 @@ public:
     }
     ~Window()
     {
-        delete[] data;
         glDeleteProgram(shader_program);
     }
     void init_shader()
@@ -117,15 +120,18 @@ public:
 
         glBindTexture(GL_TEXTURE_2D, _texture);
 
-        for (int i = 0; i < _windowWidth * _windowHeight * 3; i += 3)
-        {
-            data[i] = 1.0f;
-            data[i + 1] = 0.0f;
-            data[i + 2] = 0.0f;
-        }
-
+        data_mutex.lock();
+        // for (int i = 0; i < _windowWidth * _windowHeight * 3; i += 3)
+        // {
+        //     data[i] = 1.0f;
+        //     data[i + 1] = 0.0f;
+        //     data[i + 2] = 0.0f;
+        // }
+        // std::this_thread::sleep_for(std::chrono::seconds(5));
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _windowWidth, _windowHeight,
                         GL_RGB, GL_FLOAT, (void *)(data));
+
+        data_mutex.unlock();
 
         glUseProgram(shader_program);
 
@@ -139,6 +145,7 @@ public:
     {
         if (_keyboardInput.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE)
         {
+            terminal_flag = true;
             glfwSetWindowShouldClose(_window, true);
             return;
         }
@@ -156,9 +163,39 @@ private:
         1.0f, -1.0f, 1.0f, 1.0f, // 1.0f, 0.0f,
         1.0f, 1.0f, 1.0f, 0.0f   // 1.0f, 1.0f
     };
-    float *data;
     GLuint _vao;
     GLuint _vbo;
     GLuint _texture;
     GLuint readFboId = 0;
+};
+
+class Window_Thread
+{
+public:
+    Window_Thread(int w = 1280, int h = 720) : w(w), h(h)
+    {
+    }
+    ~Window_Thread()
+    {
+        if (window)
+            delete window;
+    }
+    void start()
+    {
+        thread = std::thread(&Window_Thread::run, this);
+    }
+    void run()
+    {
+        window = new Window(w, h);
+        window->run();
+    }
+    void stop()
+    {
+        thread.join();
+    }
+
+private:
+    int w, h;
+    std::thread thread;
+    Window *window = nullptr;
 };
