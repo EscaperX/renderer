@@ -1,6 +1,6 @@
 option(USE_EIGEN "" ON)
 add_subdirectory(utils)
-
+add_subdirectory(opengl)
 
 add_executable(renderer main.cpp)
 

@@ -1,2 +1,3 @@
 add_subdirectory(test_tev)
 add_subdirectory(opengl)
+add_subdirectory(test_window)
