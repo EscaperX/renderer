@@ -4,18 +4,23 @@
 
 void update_resouce()
 {
-    while (!terminal_flag)
-    {
+    static int frame_cnt = 0;
+    while (!terminal_flag) {
+        while (updated);
         data_mutex.lock();
-        float r = float(rand()) / RAND_MAX;
-        float g = float(rand()) / RAND_MAX;
-        float b = float(rand()) / RAND_MAX;
-        for (int i = 0; i < 1280 * 720 * 3; i += 3)
-        {
+        frame_cnt ++;
+        std::cout << frame_cnt<< std::endl;
+        // float r = float(rand()) / RAND_MAX;
+        // float g = float(rand()) / RAND_MAX;
+        // float b = float(rand()) / RAND_MAX;
+        float r = 1.0f, g = 0.0f, b = 0.0f;
+        for (int i = 0; i < 1280 * 720 * 3; i += 3) {
             data[i] = r;
             data[i + 1] = g;
             data[i + 2] = b;
         }
+        updated = true;
+        cv.notify_one();
         data_mutex.unlock();
     }
 }

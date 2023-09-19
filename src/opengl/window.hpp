@@ -7,7 +7,8 @@
 
 float data[1280 * 720 * 3] = {};
 std::mutex data_mutex;
-bool terminal_flag = false;
+bool terminal_flag = false, updated = false;
+std::condition_variable cv;
 
 const char *vs_shader = "#version 330 core\n"
                         "layout (location = 0) in vec2 position;\n"
@@ -120,7 +121,7 @@ public:
 
         glBindTexture(GL_TEXTURE_2D, _texture);
 
-        data_mutex.lock();
+        std::unique_lock<std::mutex> lock(data_mutex);
         // for (int i = 0; i < _windowWidth * _windowHeight * 3; i += 3)
         // {
         //     data[i] = 1.0f;
@@ -128,10 +129,14 @@ public:
         //     data[i + 2] = 0.0f;
         // }
         // std::this_thread::sleep_for(std::chrono::seconds(5));
+        cv.wait(lock, []{return updated;});
+
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _windowWidth, _windowHeight,
                         GL_RGB, GL_FLOAT, (void *)(data));
 
-        data_mutex.unlock();
+        lock.unlock();
+        updated = false;
+        // data_mutex.unlock();
 
         glUseProgram(shader_program);
 
