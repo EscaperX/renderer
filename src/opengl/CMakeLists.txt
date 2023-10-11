@@ -1,4 +1,7 @@
-add_library(opengl_utils application.cpp glad.c)
+file(GLOB_RECURSE util_wrapper_files *.cpp *.hpp *.c PARENT_SCOPE)
+add_library(opengl_utils  ${util_wrapper_files})
+message("files: ${util_wrapper_files}")
+target_include_directories(opengl_utils PUBLIC ${CMAKE_CURRENT_LIST_DIR}/util_wrapper)
 add_dependencies(opengl_utils dep_glfw dep_glad)
 
 ExternalProject_Get_Property(dep_glad install_dir)

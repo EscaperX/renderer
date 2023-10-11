@@ -1,2 +1,2 @@
 add_executable(test_window main.cpp)
-target_link_libraries(test_window PRIVATE opengl_utils)
+target_link_libraries(test_window PUBLIC opengl_utils)

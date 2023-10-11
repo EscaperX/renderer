@@ -2,6 +2,8 @@
 
 #include "application.hpp"
 #include "resouce.hpp"
+#include "helper_utils.hpp"
+
 // #include "image.h"
 #include <vector>
 
@@ -10,48 +12,14 @@ std::mutex data_mutex;
 bool terminal_flag = false, updated = false;
 std::condition_variable cv;
 
-const char *vs_shader = "#version 330 core\n"
-                        "layout (location = 0) in vec2 position;\n"
-                        "layout (location = 1) in vec2 texCoords;\n"
-                        "\n"
-                        "out vec2 TexCoords;\n"
-                        "\n"
-                        "void main()\n"
-                        "{\n"
-                        "    gl_Position = vec4(position.x, position.y, 0.0f, 1.0f);\n"
-                        "    TexCoords = texCoords;\n"
-                        "}\n";
-const char *fs_shader = "#version 330 core\n"
-                        "in vec2 TexCoords;\n"
-                        "out vec4 color;\n"
-                        "\n"
-                        "uniform sampler2D screenTexture;\n"
-                        "\n"
-                        "void main()\n"
-                        "{\n"
-                        "    color = texture(screenTexture, TexCoords);\n"
-                        "}\n";
-
 class Window : public Application
 {
 public:
     Window(int w = 1280, int h = 720) : Application(w, h)
     {
         // register vertices information for rectangle canvas
-        glGenVertexArrays(1, &_vao);
-        glGenBuffers(1, &_vbo);
-
-        glBindVertexArray(_vao);
-        glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(canvas_vertices), canvas_vertices, GL_STATIC_DRAW);
-
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (GLvoid *)0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (GLvoid *)(2 * sizeof(GLfloat)));
-        glBindVertexArray(0);
-
-        init_shader();
+        _vao = opengl_wrapper::create_quad_vao();
+        shader_program = opengl_wrapper::create_quad_program();
         glUseProgram(shader_program);
         glUniform1i(glGetUniformLocation(shader_program, "screenTexture"), 0);
 
@@ -91,29 +59,6 @@ public:
     {
         glDeleteProgram(shader_program);
     }
-    void init_shader()
-    {
-        GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertexShader, 1, &vs_shader, NULL);
-        glCompileShader(vertexShader);
-        // CheckShaderCompileSuccess(vertexShader);
-
-        GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragmentShader, 1, &fs_shader, NULL);
-        glCompileShader(fragmentShader);
-        // CheckShaderCompileSuccess(fragmentShader);
-
-        GLuint shaderProgram = glCreateProgram();
-        glAttachShader(shaderProgram, vertexShader);
-        glAttachShader(shaderProgram, fragmentShader);
-        glLinkProgram(shaderProgram);
-        // CheckShaderLinkSucess(shaderProgram);
-
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
-
-        shader_program = shaderProgram;
-    }
     void renderFrame()
     {
         showFpsInWindowTitle();
@@ -129,7 +74,8 @@ public:
         //     data[i + 2] = 0.0f;
         // }
         // std::this_thread::sleep_for(std::chrono::seconds(5));
-        cv.wait(lock, []{return updated;});
+        cv.wait(lock, []
+                { return updated; });
 
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _windowWidth, _windowHeight,
                         GL_RGB, GL_FLOAT, (void *)(data));
@@ -158,16 +104,6 @@ public:
 
 private:
     GLuint shader_program;
-
-    const float canvas_vertices[24] = {
-        -1.0f, 1.0f, 0.0f, 0.0f,  // 0.0f, 1.0f,
-        -1.0f, -1.0f, 0.0f, 1.0f, // 0.0f, 0.0f,
-        1.0f, -1.0f, 1.0f, 1.0f,  // 1.0f, 0.0f,
-
-        -1.0f, 1.0f, 0.0f, 0.0f, // 0.0f, 1.0f,
-        1.0f, -1.0f, 1.0f, 1.0f, // 1.0f, 0.0f,
-        1.0f, 1.0f, 1.0f, 0.0f   // 1.0f, 1.0f
-    };
     GLuint _vao;
     GLuint _vbo;
     GLuint _texture;
