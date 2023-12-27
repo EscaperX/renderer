@@ -1,5 +1,6 @@
 #pragma once
-#include "math-header.hpp"
+
+#include <math/math-header.hpp>
 #include <vector>
 
 namespace nanami

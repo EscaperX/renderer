@@ -1,14 +1,30 @@
 option(USE_EIGEN "" ON)
-add_subdirectory(utils)
-add_subdirectory(opengl)
+
+file(GLOB_RECURSE core_headers
+    "${CMAKE_CURRENT_LIST_DIR}/*.hpp")
+
+file(GLOB_RECURSE core_sources
+    "${CMAKE_CURRENT_LIST_DIR}/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/*.c")
+
+add_library(core ${core_sources})
+target_include_directories(core PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+
+add_dependencies(core dep_eigen dep_glad dep_glfw)
+
+ExternalProject_Get_Property(dep_eigen install_dir)
+target_include_directories(core PUBLIC ${install_dir}/include/eigen3)
+
+ExternalProject_Get_Property(dep_glad install_dir)
+target_include_directories(core PUBLIC ${install_dir}/include/)
+
+ExternalProject_Get_Property(dep_glfw install_dir)
+target_include_directories(core PUBLIC ${install_dir}/include/)
+target_link_directories(core PUBLIC ${install_dir}/lib/)
+target_link_libraries(core PUBLIC glfw3)
+
+target_compile_definitions(core PUBLIC ${DEFINITIONS})
+
+
 
 add_executable(renderer main.cpp)
-
-add_dependencies(renderer dep_eigen)
-ExternalProject_Get_Property(dep_eigen install_dir)
-target_include_directories(renderer PRIVATE ${install_dir}/include/eigen3)
-
-if(USE_EIGEN)
-    target_compile_definitions(renderer PRIVATE "-DUSE_EIGEN")
-endif(USE_EIGEN)
-
+target_link_libraries(renderer PUBLIC core)

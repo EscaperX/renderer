@@ -1,7 +1,16 @@
-#include "math/math-header.hpp"
+#include "gl/application.hpp"
+#include "gl/window.hpp"
+#include <string>
 #include <iostream>
 
-int main() {
-    nanami::math::Vector3f vec{1.0f, 1.0f, 1.0f};
-    std::cout << vec << std::endl;
+int main()
+{
+    cc::Application *app = new cc::Application{};
+    std::string window_title = "Test";
+    cc::Window *window = new cc::Window{window_title, app};
+
+    window->mainloop();
+
+    delete app;
+    delete window;
 }

@@ -1,7 +1,7 @@
 #pragma once
 #define USE_EIGEN
 #include <cmath>
-#ifdef USE_EIGEN
+#if defined USE_EIGEN
 #include <Eigen/Core>
 #endif
 namespace nanami

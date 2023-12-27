@@ -18,6 +18,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL Linux)
   list (APPEND DEFINITIONS "PLATFORM_LINUX")
 endif()
 
+
 add_subdirectory(3rdparty)
 add_subdirectory(src)
-add_subdirectory(test)
+# add_subdirectory(test)

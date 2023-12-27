@@ -118,6 +118,8 @@
         "xutility": "cpp",
         "stack": "cpp",
         "*.evaluator": "cpp",
-        "*.traits": "cpp"
+        "*.traits": "cpp",
+        "shared_mutex": "cpp",
+        "__nullptr": "cpp"
     }
 }
