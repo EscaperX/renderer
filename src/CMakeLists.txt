@@ -1,4 +1,8 @@
-option(USE_EIGEN "" ON)
+option(USE_GLM "" ON)
+if (USE_GLM)
+    list(APPEND DEFINITIONS "USE_GLM")
+endif ()
+
 
 file(GLOB_RECURSE core_headers
     "${CMAKE_CURRENT_LIST_DIR}/*.hpp")
@@ -6,13 +10,13 @@ file(GLOB_RECURSE core_headers
 file(GLOB_RECURSE core_sources
     "${CMAKE_CURRENT_LIST_DIR}/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/*.c")
 
-add_library(core ${core_sources})
+add_library(core ${core_sources} ${core_headers})
 target_include_directories(core PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
-add_dependencies(core dep_eigen dep_glad dep_glfw)
+add_dependencies(core dep_glm dep_glad dep_glfw)
 
-ExternalProject_Get_Property(dep_eigen install_dir)
-target_include_directories(core PUBLIC ${install_dir}/include/eigen3)
+ExternalProject_Get_Property(dep_glm install_dir)
+target_include_directories(core PUBLIC ${install_dir}/include/)
 
 ExternalProject_Get_Property(dep_glad install_dir)
 target_include_directories(core PUBLIC ${install_dir}/include/)
