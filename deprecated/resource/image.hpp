@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-namespace nanami::resource
+namespace cc::resource
 {
     /**
      * @brief A single channel of image pixels. Image starts from bottom-left, where the index is (0, 0).

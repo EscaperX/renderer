@@ -3,7 +3,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <iostream>
-namespace nanami::geometry
+namespace cc::geometry
 {
     static std::string directory;
     auto import_mesh_only(const std::string &path) -> std::vector<TriangleMesh>

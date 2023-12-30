@@ -6,7 +6,7 @@
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 
-namespace nanami::util
+namespace cc::util
 {
     struct IPCConnect::impl
     {

@@ -1,6 +1,6 @@
 #include "texture.hpp"
 
-namespace nanami::resource
+namespace cc::resource
 {
 
 }

@@ -4,7 +4,7 @@
 #include "image.hpp"
 #include <math/math-function.hpp>
 
-namespace nanami::resource
+namespace cc::resource
 {
     /**
      * \brief Mipmap generation
