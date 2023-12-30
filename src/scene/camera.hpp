@@ -2,16 +2,16 @@
 
 #include "../math/math-header.hpp"
 
-namespace nanami::util
+namespace cc::util
 {
     using namespace math;
 
     class Camera
     {
     public:
-        Camera(int w, int h, Vector3f const& pos = {0.0f, 0.0f, 2.0f},
-            Vector3f const& u = {0.0f, 1.0f, 0.0f}, Vector3f const& to = {0.0f, 0.0f, -1.0f},
-            float n = 0.1f, float f = 100.0f, float fov = 60.0f);
+        Camera(int w, int h, Vector3f const &pos = {0.0f, 0.0f, 2.0f},
+               Vector3f const &u = {0.0f, 1.0f, 0.0f}, Vector3f const &to = {0.0f, 0.0f, -1.0f},
+               float n = 0.1f, float f = 100.0f, float fov = 60.0f);
         auto view() -> Matrix4f;
         auto project() -> Matrix4f;
 
@@ -30,6 +30,9 @@ namespace nanami::util
 
         Matrix4f m_view;
         Matrix4f m_project;
+
+        bool m_view_dirty;
+        bool m_proj_dirty;
     };
 
 }

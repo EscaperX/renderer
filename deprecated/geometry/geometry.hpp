@@ -3,7 +3,7 @@
 #include <math/math-header.hpp>
 #include <vector>
 
-namespace nanami
+namespace cc
 {
     namespace geometry
     {

@@ -11,7 +11,7 @@
 #endif
 #endif
 
-namespace nanami::util
+namespace cc::util
 {
 
     IPCConnect::IPCConnect(const std::string &host)

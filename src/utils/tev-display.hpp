@@ -1,7 +1,7 @@
 #include "ipcconnect.hpp"
 #include <vector>
 #include <thread>
-namespace nanami::util
+namespace cc::util
 {
     /**
      * @brief TevDisplay is supposed to be a singleton class.

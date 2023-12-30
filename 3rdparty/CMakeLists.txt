@@ -44,20 +44,20 @@ ExternalProject_Add(
     INSTALL_COMMAND ${CMAKE_COMMAND} --install <BINARY_DIR> --config $<CONFIG>
 )
 
-# # stb
-# ExternalProject_Add(
-#     dep_stb
-#     SOURCE_DIR ${3RD_SOURCE_DIR}/stb
-#     BINARY_DIR ${3RD_BINARY_DIR}/stb
-#     INSTALL_DIR ${3RD_INSTALL_DIR}/stb
-#     CONFIGURE_COMMAND ""
-#     BUILD_COMMAND ""
-#     INSTALL_COMMAND
-#         ${CMAKE_COMMAND} -E make_directory <INSTALL_DIR>/include &&
-#         ${CMAKE_COMMAND} -E copy
-#             <SOURCE_DIR>/stb_image.h <INSTALL_DIR>/include
-#             <SOURCE_DIR>/stb_image_write.h <INSTALL_DIR>/include
-# )
+# stb
+ExternalProject_Add(
+    dep_stb
+    SOURCE_DIR ${3RD_SOURCE_DIR}/stb
+    BINARY_DIR ${3RD_BINARY_DIR}/stb
+    INSTALL_DIR ${3RD_INSTALL_DIR}/stb
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND
+        ${CMAKE_COMMAND} -E make_directory <INSTALL_DIR>/include &&
+        ${CMAKE_COMMAND} -E copy
+            <SOURCE_DIR>/stb_image.h <INSTALL_DIR>/include
+            <SOURCE_DIR>/stb_image_write.h <INSTALL_DIR>/include
+)
 
 # # tinyexr
 # ExternalProject_Add(

@@ -13,7 +13,10 @@ file(GLOB_RECURSE core_sources
 add_library(core ${core_sources} ${core_headers})
 target_include_directories(core PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
-add_dependencies(core dep_glm dep_glad dep_glfw)
+add_dependencies(core dep_glm dep_glad dep_glfw dep_stb)
+
+ExternalProject_Get_Property(dep_stb install_dir)
+target_include_directories(core PUBLIC ${install_dir}/include/)
 
 ExternalProject_Get_Property(dep_glm install_dir)
 target_include_directories(core PUBLIC ${install_dir}/include/)

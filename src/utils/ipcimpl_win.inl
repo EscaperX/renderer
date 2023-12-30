@@ -5,7 +5,7 @@
 #include <string>
 #include <iostream>
 
-namespace nanami::util
+namespace cc::util
 {
     struct IPCConnect::impl
     {

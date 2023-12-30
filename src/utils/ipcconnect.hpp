@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <memory>
-namespace nanami::util
+namespace cc::util
 {
     /**
      * @brief IPC socket communication to the provided host

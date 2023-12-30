@@ -2,7 +2,7 @@
 #include <cstddef>
 #include <cstring>
 
-namespace nanami::util
+namespace cc::util
 {
 
     enum struct OperationType : uint8_t

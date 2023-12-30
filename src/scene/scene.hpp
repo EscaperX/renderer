@@ -1,6 +1,6 @@
 #pragma once
 
-namespace nanami
+namespace cc
 {
     namespace scene
     {

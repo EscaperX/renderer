@@ -1,6 +1,6 @@
 #include "image.hpp"
 
-namespace nanami::resource
+namespace cc::resource
 {
     Channel::Channel(const std::string &name, int h, int w) : name(name), height(h), width(w)
     {
