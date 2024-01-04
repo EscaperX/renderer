@@ -9,7 +9,7 @@ namespace cc
     public:
         Window(std::string const &title = "Test", Application *app = nullptr, int w = 1024, int h = 1024);
         ~Window();
-        auto mainloop() const -> void;
+        auto mainloop() -> void;
 
     private:
         int width, height;

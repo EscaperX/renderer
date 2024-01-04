@@ -33,5 +33,5 @@ target_compile_definitions(core PUBLIC ${DEFINITIONS})
 
 
 
-add_executable(renderer main.cpp)
-target_link_libraries(renderer PUBLIC core)
+# add_executable(renderer main.cpp)
+# target_link_libraries(renderer PUBLIC core)
