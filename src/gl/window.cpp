@@ -23,10 +23,31 @@ namespace cc
         ImGui_ImplOpenGL3_Init();
         ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+        GLuint texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        uint8_t *image = new uint8_t[width * height * 3];
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++)
+            {
+                image[(j * width + i) * 3 + 0] = uint8_t(255);
+                image[(j * width + i) * 3 + 1] = 0;
+                image[(j * width + i) * 3 + 2] = 0;
+            }
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
         while (!glfwWindowShouldClose(ctx.handle()))
         {
 
             glfwPollEvents();
+
+            int display_w, display_h;
+            glfwGetFramebufferSize(ctx.handle(), &display_w, &display_h);
+            glViewport(0, 0, display_w, display_h);
+            glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+            glClear(GL_COLOR_BUFFER_BIT);
 
             // Start the Dear ImGui frame
             ImGui_ImplOpenGL3_NewFrame();
@@ -35,12 +56,16 @@ namespace cc
             // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
             if (show_demo_window)
                 ImGui::ShowDemoWindow(&show_demo_window);
+
+            static bool renderWindowIsOpen = true;
+            ImGui::Begin("Render", &renderWindowIsOpen, ImGuiWindowFlags_AlwaysAutoResize);
+            {
+                ImGui::Image(ImTextureID(texture), {float(display_w), float(display_h)}, ImVec2(0, 1), ImVec2(1, 0));
+            }
+            ImGui::End();
+            ImGui::EndFrame();
+
             ImGui::Render();
-            int display_w, display_h;
-            glfwGetFramebufferSize(ctx.handle(), &display_w, &display_h);
-            glViewport(0, 0, display_w, display_h);
-            glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-            glClear(GL_COLOR_BUFFER_BIT);
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
             glfwSwapBuffers(ctx.handle());
