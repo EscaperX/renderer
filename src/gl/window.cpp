@@ -24,8 +24,7 @@ namespace cc
         ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
         GLuint texture;
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
+        glCreateTextures(GL_TEXTURE_2D, 1, &texture);
         uint8_t *image = new uint8_t[width * height * 3];
         for (int i = 0; i < width; i++)
             for (int j = 0; j < height; j++)
@@ -34,13 +33,16 @@ namespace cc
                 image[(j * width + i) * 3 + 1] = 0;
                 image[(j * width + i) * 3 + 2] = 0;
             }
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTextureStorage2D(texture, 1, GL_RGB8, width, height);
+        glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
+        // glGenerateTextureMipmap(texture);
 
         while (!glfwWindowShouldClose(ctx.handle()))
         {
-
             glfwPollEvents();
 
             int display_w, display_h;

@@ -9,7 +9,7 @@
 
 namespace cc
 {
-    enum class TextureType
+    enum class TextureType : GLenum
     {
         Texture_1D = GL_TEXTURE_1D,
         Texture_2D = GL_TEXTURE_2D,
@@ -18,19 +18,19 @@ namespace cc
         Texture_2D_Array = GL_TEXTURE_2D_ARRAY,
         Texture_Cube = GL_TEXTURE_CUBE_MAP
     };
-    enum class TextureFilter
+    enum class TextureFilter : GLint
     {
         Linear = GL_LINEAR,
         Nearest = GL_NEAREST
     };
 
-    enum class TextureWrapping
+    enum class TextureWrapping : GLint
     {
         ClampToEdge = GL_CLAMP_TO_EDGE,
         Repeat = GL_REPEAT
     };
 
-    enum class TextureLayout
+    enum class TextureFormat : GLenum
     {
         R = GL_RED,
         R8 = GL_R8,
@@ -55,11 +55,25 @@ namespace cc
         Depth24_Stencil8 = GL_DEPTH24_STENCIL8,
         Depth32fSstencil8 = GL_DEPTH32F_STENCIL8,
     };
-
+    /**
+     * @brief Texture basic interface. Describe the basic properties and the image source of texture.
+     *
+     */
     class Texture
     {
     public:
         Texture();
         ~Texture();
+
+    protected:
+        TextureFormat m_texture_format;
+        TextureType m_texture_type;
+        TextureFilter m_texture_filter;
+        TextureWrapping m_texture_wrapping;
     };
+
+    class Texture2D : public Texture
+    {
+    public:
+        };
 } // namespace cc

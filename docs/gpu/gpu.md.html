@@ -113,11 +113,30 @@ Tesla架构
 这导致更低的效率。例如对于小三角形，顶点着色器工作量大，片段着色器工作量小，反之同理。且Dx 10中增加了更复杂的几何单元处理（例如引入了几何着色器（Geometry Shader））,使得选择固定的处理器比例变得更困难。
 这些都影响设计统一架构的决定。
 
-Tesla架构统一并且扩展了顶点和像素处理器，
+Tesla架构统一且扩展了顶点和像素处理器，
 
 
 通用计算中的GPU
 ====
+
+随着GPU性能的不断提高，将GPU用于更广泛的通用计算成为了一个主要趋势。相比CPU，GPU的浮点计算速度比CPU快得多，且能有更好的负载平衡——将计算任务分配给GPU可独立于CPU完成计算，而且GPU性能的增长曲线远远快于CPU。
+
+不同于CPU的线性处理模式，GPU采用的模型通常是流式模型（Stream Processor），在一组输入数据上并行地执行一个特定的函数，输出一组结果。在这个过程中，函数通常被称为核（kernel），一组数据通常被称为流（stream）。
+数据以流的形式输入处理器，在核函数上被执行，结果输出到内存中。所有传入处理器的元素独立地被处理，这保证了GPU架构不用向使用者暴露任何并行单元和组成，就可以实现一个完全并行的编程模型。
+
+可编程管线时代的通用计算
+----
+
+在可编程管线诞生时，已经有相当一部分任务可以将数据抽象为“片段”，在片段着色器中并行计算。如Simon Green在2003年展示了用这样的技术在GPU上模拟布料。模拟算法的核心是基于GPU的双调排序和二分查找，这里就不再展开。
+而Purcell等人在这时已经开始了光线追踪的尝试。他们将光线追踪的过程分为四个核：光线生成、均匀网格遍历、三角形求交和着色。
+- 光线生成。给定相机参数，对于每个屏幕像素生成一条出射光线，并检测是否与场景包围盒相交。
+- 均匀网格遍历。选择均匀网格作为加速结构的理由是，各种加速结构的效率没有绝对优势，且均匀网格在GPU的实现上更为简单，在遍历时也有3维的DDA算法。![Figure [grid]The grid and triangle data structures stored in texture
+memory.](images/ray_trace.png)
+- 三角形求交。对于含有三角形的网格，对体素中包含的所有三角形进行相交测试。
+- 着色阶段。场景的材质和额外的顶点信息存在一系列的RGB纹理中。对于Path Tracer，散射的光线会被存在内存中以在场景中继续传播。
+
+这样的光线追踪管线的表现相当不错，且还能在今天的一些基于Computer Shader的光追样例中看到架构/存储上的相似之处。
+
 
 
 
@@ -135,8 +154,8 @@ Education.
 [#GPU Gems2]: Matt Pharr and Randima Fernando. 2005. GPU Gems 2: Programming Techniques for High-Performance Graphics and
 General-Purpose Computation (Gpu Gems). Addison-Wesley Professional.
 [#GPU Gems3]: Hubert Nguyen. 2007. Gpu gems 3 (First. ed.). Addison-Wesley Professional.
-
-
+[#Simon]: Green, S. (2003, March). Stupid opengl shader tricks. In Game Development Conference (Vol. 2003).
+[#Purcell]: Purcell, Timothy J., Ian Buck, William R. Mark, and Pat Hanrahan. 2002. "Ray Tracing on Programmable Graphics Hardware." ACM Transactions on Graphics 21(3), pp. 703–712.
 
 <link rel="stylesheet" href="https://morgan3d.github.io/markdeep/latest/latex.css?">
 <!-- Markdeep: --><style class="fallback">body{visibility:hidden}</style><script src="https://morgan3d.github.io/markdeep/latest/markdeep.min.js?" charset="utf-8"></script>

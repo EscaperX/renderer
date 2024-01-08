@@ -1,4 +1,6 @@
 #include "shader.hpp"
 
-namespace cc {
+namespace cc
+{
+
 } // cc
