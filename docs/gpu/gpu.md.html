@@ -113,8 +113,25 @@ Tesla架构
 这导致更低的效率。例如对于小三角形，顶点着色器工作量大，片段着色器工作量小，反之同理。且Dx 10中增加了更复杂的几何单元处理（例如引入了几何着色器（Geometry Shader））,使得选择固定的处理器比例变得更困难。
 这些都影响设计统一架构的决定。
 
-Tesla架构统一且扩展了顶点和像素处理器，
+![Figure [Tesla]: Tesla Architecture](images/tesla_arch.png)
 
+Tesla架构统一且扩展了顶点和像素处理器，构成了可扩展的处理器列。在这里分为流处理器和其它部分介绍。
+
+### 流水线组件
+
+- **主机接口（Host Interface）**负责收发来自CPU的指令（Command），从显存中获取数据，检查指令连贯性，并处理GPU的上下文切换。
+- **输入装配器（Input Assembler）**组装顶点数据和顶点属性，传给顶点任务分配器。
+- **顶点/像素/计算任务分配器（Vertex、Pixel、Compute Work Distribution）**负责将顶点/片元/计算着色器的任务分发给流处理器完成。
+- **纹理处理簇（Texture Processing Clusters，TPC）**包含了一个纹理单元和两个流处理器，在下一小结会重点介绍。
+- **视口/裁剪/装配/光栅化/深度剔除单元（Viewport/clip/setup/raster/zcull block）**组成了传统的光栅化单元，将顶点或几何着色器的结果进行转换和剔除。几何原语被分为一个较小的像素块，既方便快速判断剔除，也通过块地址快速选择处理的流处理器。处理完的像素会被打包通过流处理器控制器分配TPC进行片段着色器的工作。
+- **光栅运算处理器（Raster Operations Processor）**功能与传统管线非常类似。每个ROP被分配了一个特定的内存区块，TPC通过互联网络向ROP传送着色像素。
+- **L2 Cache、Memory Controller和DRAM**组成的存储系统。每个DRAM搭配了一个Memory Controller、L2 Cache和一个ROP，处理从TPC的SM里发来的数据吞吐请求和ROP写入帧缓冲的像素数据。
+
+### 流处理器
+
+流处理器由以下几个单元组成：
+- **几何控制器（Geometry Controller）**负责顶点属性在芯片内的输入输出，它会把顶点/几何着色器的结果送到光栅化单元，或者保存到内存中。
+- **流处理器控制器（SM Controller）**负责将各种计算任务拆分打包成Warp，交给TPC中所属的某个SM来计算。此外，SMC还负责协调
 
 通用计算中的GPU
 ====

@@ -44,6 +44,9 @@ namespace cc
 		GLSLShader(Source const &source);
 
 	private:
-		};
+		GLuint m_handle;
+		GLuint compile_shader(const std::string &shader_string, GLenum shader_type) const;
+		void check_compile_errors(GLuint program_or_shader, GLenum program_or_shader_type) const;
+	};
 
 } // cc
