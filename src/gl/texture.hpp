@@ -7,73 +7,59 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "gl-enum.hpp"
+#include "state-object.hpp"
+#include <scene/image.hpp>
 namespace cc
 {
-    enum class TextureType : GLenum
-    {
-        Texture_1D = GL_TEXTURE_1D,
-        Texture_2D = GL_TEXTURE_2D,
-        Texture_3D = GL_TEXTURE_3D,
-        Texture_Buffer = GL_TEXTURE_BUFFER,
-        Texture_2D_Array = GL_TEXTURE_2D_ARRAY,
-        Texture_Cube = GL_TEXTURE_CUBE_MAP
-    };
-    enum class TextureFilter : GLint
-    {
-        Linear = GL_LINEAR,
-        Nearest = GL_NEAREST
-    };
 
-    enum class TextureWrapping : GLint
-    {
-        ClampToEdge = GL_CLAMP_TO_EDGE,
-        Repeat = GL_REPEAT
-    };
-
-    enum class TextureFormat : GLenum
-    {
-        R = GL_RED,
-        R8 = GL_R8,
-        R16f = GL_R16F,
-        R32f = GL_R32F,
-
-        RG = GL_RG,
-        RG8 = GL_RG8,
-        RG16f = GL_RG16F,
-        RG32f = GL_RG32F,
-
-        RGB = GL_RGB,
-        RGB8 = GL_RGB8,
-
-        RGBA8 = GL_RGBA8,
-        RGBA16f = GL_RGBA16F,
-        RGBA32f = GL_RGBA32F,
-
-        Depth24 = GL_DEPTH_COMPONENT,
-        Depth32f = GL_DEPTH_COMPONENT32F,
-
-        Depth24_Stencil8 = GL_DEPTH24_STENCIL8,
-        Depth32fSstencil8 = GL_DEPTH32F_STENCIL8,
-    };
     /**
      * @brief Texture basic interface. Describe the basic properties and the image source of texture.
      *
      */
-    class Texture
+    class Texture : public StateObject
     {
     public:
-        Texture();
+        Texture(TextureFormat format = TextureFormat::RGB, TextureType type = TextureType::Texture_2D);
         ~Texture();
 
+        auto set_filter(TextureFilter filter) -> void;
+        auto set_wrapping(TextureWrapping wrapping) -> void;
+
     protected:
-        TextureFormat m_texture_format;
-        TextureType m_texture_type;
-        TextureFilter m_texture_filter;
-        TextureWrapping m_texture_wrapping;
+        TextureFormat m_format;
+        TextureType m_type;
+        TextureFilter m_filter;
+        TextureWrapping m_wrapping;
     };
 
+    /**
+     * @brief Texture2D meta information.
+     *
+     */
     class Texture2D : public Texture
     {
     public:
-        };
+        /**
+         * @brief Construct an empty Texture2D object
+         *
+         * @param width
+         * @param height
+         * @param format
+         */
+        Texture2D(int width, int height, TextureFormat format);
+        Texture2D(ImagePtr image, TextureFormat format);
+        Texture2D(std::string const &path, TextureFormat format);
+        Texture2D(TextureFormat format, int width, int height,
+                  TextureSourceFormat srcFormat, PrimitiveFormat srcType, const void *data);
+
+        auto width() const -> int;
+        auto height() const -> int;
+
+    private:
+        void allocate(TextureFormat format, int width, int height,
+                      TextureSourceFormat srcFormat, PrimitiveFormat srcType, const void *data);
+        std::vector<ImagePtr> images;
+        int m_width, m_height;
+    };
 } // namespace cc

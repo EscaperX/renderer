@@ -27,5 +27,5 @@ namespace cc
         ImageMetaType m_meta_type;
         uint8_t *m_data;
     };
-
+    using ImagePtr = std::shared_ptr<Image>;
 }
