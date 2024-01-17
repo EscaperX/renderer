@@ -2,7 +2,7 @@
 
 #include "../math/math-header.hpp"
 
-namespace cc::util
+namespace cc
 {
     using namespace math;
 

@@ -1,5 +1,5 @@
-            **图形处理器(GPU)的历史、现状和展望**
-            以Nvidia为例
+**图形处理器(GPU)的历史、现状和展望**
+以Nvidia为例
 
 引言
 ===
@@ -123,16 +123,41 @@ Tesla架构统一且扩展了顶点和像素处理器，构成了可扩展的处
 - **输入装配器（Input Assembler）**组装顶点数据和顶点属性，传给顶点任务分配器。
 - **顶点/像素/计算任务分配器（Vertex、Pixel、Compute Work Distribution）**负责将顶点/片元/计算着色器的任务分发给流处理器完成。
 - **纹理处理簇（Texture Processing Clusters，TPC）**包含了一个纹理单元和两个流处理器，在下一小结会重点介绍。
-- **视口/裁剪/装配/光栅化/深度剔除单元（Viewport/clip/setup/raster/zcull block）**组成了传统的光栅化单元，将顶点或几何着色器的结果进行转换和剔除。几何原语被分为一个较小的像素块，既方便快速判断剔除，也通过块地址快速选择处理的流处理器。处理完的像素会被打包通过流处理器控制器分配TPC进行片段着色器的工作。
+- **视口/裁剪/装配/光栅化/深度剔除单元（Viewport/clip/setup/raster/zcull
+block）**组成了传统的光栅化单元，将顶点或几何着色器的结果进行转换和剔除。几何原语被分为一个较小的像素块，既方便快速判断剔除，也通过块地址快速选择处理的流处理器。处理完的像素会被打包通过流处理器控制器分配TPC进行片段着色器的工作。
 - **光栅运算处理器（Raster Operations Processor）**功能与传统管线非常类似。每个ROP被分配了一个特定的内存区块，TPC通过互联网络向ROP传送着色像素。
-- **L2 Cache、Memory Controller和DRAM**组成的存储系统。每个DRAM搭配了一个Memory Controller、L2 Cache和一个ROP，处理从TPC的SM里发来的数据吞吐请求和ROP写入帧缓冲的像素数据。
+- **L2 Cache、Memory Controller和DRAM**组成的存储系统。每个DRAM搭配了一个Memory Controller、L2
+Cache和一个ROP，处理从TPC的SM里发来的数据吞吐请求和ROP写入帧缓冲的像素数据。
 
-### 流处理器
-![Figure [SM]: Streaming Multiprocessor](images/sm_arch.png)
-流处理器由以下几个单元组成：
+### 纹理处理簇
+
+纹理处理簇由以下几个单元组成：
 - **几何控制器（Geometry Controller）**负责顶点属性在芯片内的输入输出，它会把顶点/几何着色器的结果送到光栅化单元，或者保存到内存中。
-- **流处理器控制器（SM Controller）**负责将各种计算任务拆分打包成Warp，交给TPC中所属的某个SM来计算。此外，SMC还负责协调SM和纹理单元的工作，
+- **流处理器控制器（SM Controller）**负责将各种计算任务拆分打包成Warp，交给TPC中所属的某个SM来计算。此外，SMC还负责协调
+- **纹理单元（Texture Unit）**包含4个纹理地址生成器和8个滤波单元，通过分析指令中的纹理坐标输出经过插值的纹理值，存在纹理一级缓存中。
+- **流式多处理器（Streaming Multiprocessor）**是负责底层运算最主要的单元，和我们熟悉的CPU组成也十分类似。大致可以分为：
+- 指令缓存会将来自SMC的工作指令会被缓存在其中，分批执行。
+- 流处理器（SP）执行最基本的浮点型标量运算和各种指数运算，类似于ALU。而特殊函数单元（SFU）负责处理更复杂的运算。这和传统管线是大致相同的。
+- 多线程调度是任务并行的关键，负责将warp任务分配给计算单元完成。
+- 常量缓存和共享内存。是所有处理器共享的存储单元，提供最快速的访问支持。
 
+抛开合并后的计算单元，Tesla架构对传统图形管线并没有非常大的革新。所以在图形处理部分就暂时介绍到这里。而该架构引入的并行编程模型和调度原理会在通用计算章节下做进一步介绍。
+
+Fermi架构
+---
+
+![Figure [Fermi]: Fermi Architecture](images/fermi_arch.png)
+
+Tesla架构统一了不同着色器执行的硬件单元，而光栅管线仍然和传统管线一样作为独立单元在管线中，随着SM数量的增加和效率的提升，顶点着色器输出的片元数量也在增多。而传统光栅单元作为管线中单一的小水管就容易堵塞。
+而升级的思路也很简单，将光栅处理普及到每个TPC中。
+
+### 更完备的TPC
+
+- Fermi架构拆分传统管线中的光栅单元，将顶点获取、曲面细分、视口转换、属性设置和流式输出功能构成了新的几何引擎（PolyMorph Engine）内置于每个SM中。
+- 包含边配置、光栅化和Z-cull的Raster Engine只在每个TPC中服务于所有SM。
+- 每个SM中都内置了四个纹理单元。
+
+### 曲面细分
 
 通用计算中的GPU
 ====
@@ -142,23 +167,54 @@ Tesla架构统一且扩展了顶点和像素处理器，构成了可扩展的处
 不同于CPU的线性处理模式，GPU采用的模型通常是流式模型（Stream Processor），在一组输入数据上并行地执行一个特定的函数，输出一组结果。在这个过程中，函数通常被称为核（kernel），一组数据通常被称为流（stream）。
 数据以流的形式输入处理器，在核函数上被执行，结果输出到内存中。所有传入处理器的元素独立地被处理，这保证了GPU架构不用向使用者暴露任何并行单元和组成，就可以实现一个完全并行的编程模型。
 
-
 可编程管线时代的通用计算
 ----
 
 在可编程管线诞生时，已经有相当一部分任务可以将数据抽象为“片段”，在片段着色器中并行计算。如Simon Green在2003年展示了用这样的技术在GPU上模拟布料。模拟算法的核心是基于GPU的双调排序和二分查找，这里就不再展开。
 而Purcell等人在这时已经开始了光线追踪的尝试。他们将光线追踪的过程分为四个核：光线生成、均匀网格遍历、三角形求交和着色。
 - 光线生成。给定相机参数，对于每个屏幕像素生成一条出射光线，并检测是否与场景包围盒相交。
-- 均匀网格遍历。选择均匀网格作为加速结构的理由是，各种加速结构的效率没有绝对优势，且均匀网格在GPU的实现上更为简单，在遍历时也有3维的DDA算法。![Figure [grid]The grid and triangle data structures stored in texture
+- 均匀网格遍历。选择均匀网格作为加速结构的理由是，各种加速结构的效率没有绝对优势，且均匀网格在GPU的实现上更为简单，在遍历时也有3维的DDA算法。![Figure [grid]The grid and triangle data
+structures stored in texture
 memory.](images/ray_trace.png)
 - 三角形求交。对于含有三角形的网格，对体素中包含的所有三角形进行相交测试。
 - 着色阶段。场景的材质和额外的顶点信息存在一系列的RGB纹理中。对于Path Tracer，散射的光线会被存在内存中以在场景中继续传播。
 
 这样的光线追踪管线的表现相当不错，且还能在今天的一些基于Computer Shader的光追样例中看到架构/存储上的相似之处。
 
+Tesla管线时代的通用计算
+---
+
+### 流式多处理器的并行原理
+一个着色器或是一个CUDA核函数，都定义了一个线程如何对一个像素着色/计算得到一个结果。为了并行管理数百个不同类型的线程，流式多处理器是硬件级别并行的。
+当SMC取得一个着色器的所有指令后，会将这些指令以一个Warp，即32个线程为单位分发给SM。例如，8个2*2的像素块会被打包进入同一个Warp，共享相应着色器的指令。
+MT Issue每次从存在I Cache中指令取出一条令Warp中的线程执行。这也是SIMT（Single Instruction Multiple Thread）概念由来。
+
+而由于每个线程输入不同，同一条指令的结果也不同。当遇到分支时，需要额外的开销来判断Warp中所有线程是否会进入同一分支，存在不可避免的不同分支时，所有线程将分类串行，这会引入无法避免的额外开销。
+而另一个非常大的时间消耗来自内存阻塞，在传统管线中，厂商会建议开发者在程序开始时请求相关资源，而在中间插入其它计算以减少等待时间。而在流式多处理器中，硬件设计者提供了一个足够大的指令缓存，通过切换Warp来隐藏内存读取的延迟。
+所以线程调度器还需要每两个周期从多个Warp中挑选合适的进行切换。
+
+
+### CUDA（Compute Unified Device Architecture）
+
+Tesla架构解耦了计算单元和图形单元，使通用管线的自由度更高，也释放了更灵活、性能更强的可能性。CUDA就应运而生了。
+
+CUDA是基于C/C++的扩展，用户可以将核函数写成C的函数形式，nvcc编译器将编译的含有CPU串行代码和并行的GPU核函数通过CUDA的运行时API，将GPU作为CPU的协处理器进行并行计算。
+
+作为一个编程模型，我将会从线程和存储架构来介绍CUDA的设计思想。
+
+CUDA的线程结构为Grid、Block和Thread。同一个Grid中的所有Block相互独立，而每个Block中的Thread可以通过共享内存传递数据，所以Block中的线程也被称为协作线程组（CTA，cooperative thread array）。
+每个Grid包含的Block数量和每个Block包含的Thread个数由核函数确定。而线程处理的数据则通常由线程在结构中的ID进行索引。
 
 
 
+#### CUDA的内存模型
+
+配合线程的结构，GPU内存也被分为不同的层级以减少带宽消耗，提高数据读取速度。
+![Figure. [CUDA Mem] CUDA Memory Architecture](images/cuda_mem_arch.png)
+
+- 每个线程都有独立的寄存器组，以存储所需的局部变量。
+- 每个Block共享一片内存区域，且包含一个一级缓存用来存储纹理数据。一个Block内的所有线程必定位于同一个SM中，而不同Block的线程是相互不可见的。
+- 而全局内存通过L2 Cache与SM相连，所有SM可以共同使用。不同Grid的执行是串行的，一个Warp中的连续线程访问连续的内存，可以被合并为一条内存读取指令。
 
 展望
 ===
@@ -166,15 +222,25 @@ memory.](images/ray_trace.png)
 
 (#) 引用
 
-[#GeForce 6800]: J. Montrym and H. Moreton, "The GeForce 6800," in IEEE Micro, vol. 25, no. 2, pp. 41-51, March-April 2005, doi:
+[#GeForce 6800]: J. Montrym and H. Moreton, "The GeForce 6800," in IEEE Micro, vol. 25, no. 2, pp. 41-51, March-April
+2005, doi:
 10.1109/MM.2005.37.
-[#GPU Gems]: Randima Fernando. 2004. GPU Gems: Programming Techniques, Tips and Tricks for Real-Time Graphics. Pearson Higher
+[#GPU Gems]: Randima Fernando. 2004. GPU Gems: Programming Techniques, Tips and Tricks for Real-Time Graphics. Pearson
+Higher
 Education.
-[#GPU Gems2]: Matt Pharr and Randima Fernando. 2005. GPU Gems 2: Programming Techniques for High-Performance Graphics and
+[#GPU Gems2]: Matt Pharr and Randima Fernando. 2005. GPU Gems 2: Programming Techniques for High-Performance Graphics
+and
 General-Purpose Computation (Gpu Gems). Addison-Wesley Professional.
 [#GPU Gems3]: Hubert Nguyen. 2007. Gpu gems 3 (First. ed.). Addison-Wesley Professional.
 [#Simon]: Green, S. (2003, March). Stupid opengl shader tricks. In Game Development Conference (Vol. 2003).
-[#Purcell]: Purcell, Timothy J., Ian Buck, William R. Mark, and Pat Hanrahan. 2002. "Ray Tracing on Programmable Graphics Hardware." ACM Transactions on Graphics 21(3), pp. 703–712.
+[#Purcell]: Purcell, Timothy J., Ian Buck, William R. Mark, and Pat Hanrahan. 2002. "Ray Tracing on Programmable
+Graphics Hardware." ACM Transactions on Graphics 21(3), pp. 703–712.
 
 <link rel="stylesheet" href="https://morgan3d.github.io/markdeep/latest/latex.css?">
-<!-- Markdeep: --><style class="fallback">body{visibility:hidden}</style><script src="https://morgan3d.github.io/markdeep/latest/markdeep.min.js?" charset="utf-8"></script>
+<!-- Markdeep: -->
+<style class="fallback">
+    body {
+        visibility: hidden
+    }
+</style>
+<script src="https://morgan3d.github.io/markdeep/latest/markdeep.min.js?" charset="utf-8"></script>

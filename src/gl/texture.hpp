@@ -9,7 +9,7 @@
 
 #include "gl-enum.hpp"
 #include "state-object.hpp"
-#include <scene/image.hpp>
+#include <resource/image.hpp>
 namespace cc
 {
 
