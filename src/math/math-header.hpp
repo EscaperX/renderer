@@ -3,6 +3,7 @@
 #if defined USE_EIGEN
 #include <Eigen/Core>
 #elif defined USE_GLM
+#define GLM_FORCE_SWIZZLE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -17,10 +18,14 @@ namespace cc
         using Matrix3f = Eigen::Matrix3f;
         using Matrix4f = Eigen::Matrix4f;
 #elif USE_GLM
-    	using Vector3f = glm::vec3;
-    	using Vector2f = glm::vec2;
-    	using Matrix3f = glm::mat3;
-    	using Matrix4f = glm::mat4;
+        using Vector3u8i = glm::u8vec3;
+        using Vector4f = glm::vec4;
+        using Vector3f = glm::vec3;
+        using Vector2f = glm::vec2;
+        using Vector2i = glm::ivec2;
+        using Vector3i = glm::ivec3;
+        using Matrix3f = glm::mat3;
+        using Matrix4f = glm::mat4;
 #endif
 
     }

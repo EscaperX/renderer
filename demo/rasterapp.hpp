@@ -1,4 +1,5 @@
 #pragma once
+#include "simple-buffer.hpp"
 
 #include <gl/application.hpp>
 #include <glad/glad.h>

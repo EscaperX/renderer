@@ -3,14 +3,13 @@
 
 namespace cc::math
 {
-	auto view_matrix(Vector3f const & pos, Vector3f const& to, Vector3f const & right, Vector3f const &up) -> Matrix4f
+	auto view_matrix(Vector3f const &pos, Vector3f const &to, Vector3f const &right, Vector3f const &up) -> Matrix4f
 	{
 		auto view = Matrix4f{
-			right.x, up.x, -to.x, 0.f,
-			right.y, up.y, -to.y, 0.f,
-			right.z, up.z, -to.z, 0.f,
-			-glm::dot(right, pos), -glm::dot(up, pos), -glm::dot(-to, pos), 0.0f
-		};
+			right.x, up.x, to.x, 0.f,
+			right.y, up.y, to.y, 0.f,
+			right.z, up.z, to.z, 0.f,
+			-glm::dot(right, pos), -glm::dot(up, pos), glm::dot(-to, pos), 1.0f};
 		return view;
 	}
 
@@ -27,7 +26,7 @@ namespace cc::math
 		return proj * to_ortho;
 	}
 
-	auto ortho_proj_matrix(int w, int h, float near, float far) -> Matrix4f
+	auto ortho_proj_matrix(float w, float h, float near, float far) -> Matrix4f
 	{
 		auto result = Matrix4f{1.0f};
 		result[0][0] = 2.0f / w;

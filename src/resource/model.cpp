@@ -9,11 +9,17 @@ namespace cc
         assert(loadout);
 
         ModelPtr model = std::make_shared<Model>();
-        model->meshes.reserve(Loader.LoadedMeshes.size());
+        model->submesh_cnt = Loader.LoadedMeshes.size();
+        model->meshes.reserve(model->submesh_cnt);
+
         for (auto mesh : Loader.LoadedMeshes)
         {
             model->meshes.emplace_back();
             auto &cur_mesh = model->meshes.back();
+
+            model->vertex_cnt += mesh.Vertices.size();
+            model->face_cnt += mesh.Indices.size() / 3;
+
             for (auto vert : mesh.Vertices)
             {
                 cur_mesh.positions.emplace_back(vert.Position.X, vert.Position.Y, vert.Position.Z);

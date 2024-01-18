@@ -1,4 +1,5 @@
 #include "rasterapp.hpp"
+#include "raster/raster.hpp"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -8,8 +9,9 @@
 
 namespace cc
 {
-    RasterApp::RasterApp()
+    RasterApp::RasterApp() : camera(m_resolution_width, m_resolution_height)
     {
+        model = load_model("D:/renderer/asset/cube.obj");
     }
     RasterApp::~RasterApp() {}
     auto RasterApp::init() -> void
@@ -21,23 +23,20 @@ namespace cc
         glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTextureStorage2D(texture, 1, GL_RGB8, m_resolution_width, m_resolution_height);
     }
-    auto RasterApp::update() -> void {}
+    auto RasterApp::update() -> void
+    {
+        auto &raster = Raster::instance();
+        raster.clear_color();
+        raster.clear_depth();
+        raster.initialize(model, camera.view(), camera.project());
+        raster.set_viewport(m_resolution_width, m_resolution_height);
+        raster.rasterize();
+    }
     auto RasterApp::render() -> void
     {
+        auto &raster = Raster::instance();
+        glTextureSubImage2D(texture, 0, 0, 0, m_resolution_width, m_resolution_height, GL_RGB, GL_UNSIGNED_BYTE, reinterpret_cast<uint8_t const *>(raster.get_color()));
 
-        uint8_t *image = new uint8_t[m_resolution_width * m_resolution_height * 3];
-        memset(image, 0, sizeof(image));
-        for (int i = 10; i < 200; i++)
-            for (int j = 10; j < 200; j++)
-            {
-                image[(j * m_resolution_width + i) * 3 + 0] = uint8_t(255);
-                image[(j * m_resolution_width + i) * 3 + 1] = 0;
-                image[(j * m_resolution_width + i) * 3 + 2] = 0;
-            }
-
-        glTextureSubImage2D(texture, 0, 0, 0, m_resolution_width, m_resolution_height, GL_RGB, GL_UNSIGNED_BYTE, image);
-        delete[] image;
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
         static bool show_demo_window = true;
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
@@ -47,6 +46,16 @@ namespace cc
         {
             ImGui::SetWindowPos(ImVec2(0, 0), ImGuiCond_Always);
             ImGui::Image(ImTextureID(texture), {float(m_viewport_width), float(m_viewport_height)}, ImVec2(0, 1), ImVec2(1, 0));
+        }
+        ImGui::End();
+
+        static bool config_window = true;
+        ImGui::Begin("Config", &config_window);
+        {
+            if (ImGui::SliderFloat3("Position", reinterpret_cast<float *>(&camera.m_position), -100.f, 100.f))
+            {
+                camera.m_view_dirty = true;
+            }
         }
         ImGui::End();
 
@@ -66,6 +75,25 @@ namespace cc
             float frame_time = (cur_timestep - m_last_timestep) * 1000.0;
             ImGui::Text("Render Time: %.3lf ms, FPS: %.3lf", frame_time, 1000.0 / frame_time);
             m_last_timestep = cur_timestep;
+            ImGui::End();
+        }
+
+        ImGui::SetNextWindowPos({static_cast<float>(m_viewport_width) - 280.0f, 80.0f});
+        if (ImGui::Begin("Model Stat", nullptr,
+                         ImGuiWindowFlags_NoMove |
+                             ImGuiWindowFlags_NoDecoration |
+                             ImGuiWindowFlags_AlwaysAutoResize |
+                             ImGuiWindowFlags_NoSavedSettings |
+                             ImGuiWindowFlags_NoFocusOnAppearing |
+                             ImGuiWindowFlags_NoNav |
+                             ImGuiWindowFlags_NoScrollbar |
+                             ImGuiWindowFlags_NoScrollWithMouse))
+        {
+
+            ImGui::Text("Model Stat:\n");
+            ImGui::Text("\t Faces    :%d\n", model->face_cnt);
+            ImGui::Text("\t Vertices :%d\n", model->vertex_cnt);
+            ImGui::Text("\t Submeshes:%d\n", model->submesh_cnt);
             ImGui::End();
         }
     }
