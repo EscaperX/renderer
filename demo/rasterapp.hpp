@@ -20,7 +20,7 @@ namespace cc
 
     private:
         GLuint texture; // Final display texture sent to imgui
-        ModelPtr model;
+        std::vector<ModelPtr> models;
         Camera camera;
     };
 };

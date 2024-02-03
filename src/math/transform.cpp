@@ -16,9 +16,12 @@ namespace cc::math
 	auto persp_proj_matrix(float fov, float aspect, float near, float far) -> Matrix4f
 	{
 		auto to_ortho = Matrix4f{1.0f};
-		to_ortho[2][2] = (near + far) / near;
-		to_ortho[3][2] = -far;
-		to_ortho[2][3] = 1.0f / near;
+		to_ortho[0][0] = near;
+		to_ortho[1][1] = near;
+		to_ortho[2][2] = (near + far);
+		to_ortho[3][2] = -far * near;
+		to_ortho[2][3] = 1.0f;
+		to_ortho[3][3] = 0.0f;
 
 		float height = tan(to_radian(fov) * 0.5) * near * 2;
 		float width = height * aspect;

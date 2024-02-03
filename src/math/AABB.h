@@ -1,4 +1,4 @@
-
+#pragma once
 #include "math-header.hpp"
 #include <array>
 #include <string>
@@ -8,8 +8,9 @@ namespace cc
     {
     public:
         AABB(float xs = -FLT_MAX, float xm = FLT_MAX, float ys = -FLT_MAX, float ym = FLT_MAX, float zs = -FLT_MAX, float zm = FLT_MAX);
-        AABB(math::Vector3f _min, math::Vector3f _max);
+        AABB(math::Vector3f const &_min, math::Vector3f const &_max);
         AABB(math::Vector3f const &a, math::Vector3f const &b, math::Vector3f const &c);
+        AABB(math::Vector4f const &a, math::Vector4f const &b, math::Vector4f const &c);
         bool inside(math::Vector3f const &p) const;
         math::Vector3f get_center() const;
         std::array<math::Vector3f, 8> get_vertices();

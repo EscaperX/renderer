@@ -12,11 +12,15 @@ namespace cc
         {
             buffer.resize(w * h);
         }
-        auto at(int x, int y) -> T &
+        Buffer2D(int w, int h, T const &val) : width(w), height(h), buffer(w * h, val)
         {
-            return buffer[y * width + x];
         }
-        auto at(int x, int y) const -> T const { return buffer[y * width + x]; }
+        auto at(int w, int h) -> T &
+        {
+            // std::cout << w << " " << h << std::endl;
+            return buffer[h * width + w];
+        }
+        auto at(int w, int h) const -> T const { return buffer[h * width + w]; }
         auto clear(T const &val = {}) -> void
         {
             for (auto &elem : buffer)
@@ -29,6 +33,8 @@ namespace cc
             buffer.resize(w * h);
         }
         auto data() const -> const T * { return buffer.data(); }
+        auto get_width() const -> int { return width; }
+        auto get_height() const -> int { return height; }
 
     private:
         std::vector<T> buffer;
