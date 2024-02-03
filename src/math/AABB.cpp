@@ -8,7 +8,7 @@ namespace cc
         y[0] = ys, y[1] = ym;
         z[0] = zs, z[1] = zm;
     }
-    AABB::AABB(math::Vector3f p1, math::Vector3f p2)
+    AABB::AABB(math::Vector3f const &p1, math::Vector3f const &p2)
     {
         x[0] = std::min(p1.x, p2.x);
         y[0] = std::min(p1.y, p2.y);
@@ -22,6 +22,23 @@ namespace cc
         x[1] = y[1] = z[1] = -FLT_MAX;
         x[0] = y[0] = z[0] = FLT_MAX;
         auto merge_op = [&](math::Vector3f const &vec) -> void
+        {
+            x[0] = std::min(x[0], vec.x);
+            x[1] = std::max(x[1], vec.x);
+            y[0] = std::min(y[0], vec.y);
+            y[1] = std::max(y[1], vec.y);
+            z[0] = std::min(z[0], vec.z);
+            z[1] = std::max(z[1], vec.z);
+        };
+        merge_op(a);
+        merge_op(b);
+        merge_op(c);
+    }
+    AABB::AABB(math::Vector4f const &a, math::Vector4f const &b, math::Vector4f const &c)
+    {
+        x[1] = y[1] = z[1] = -FLT_MAX;
+        x[0] = y[0] = z[0] = FLT_MAX;
+        auto merge_op = [&](math::Vector4f const &vec) -> void
         {
             x[0] = std::min(x[0], vec.x);
             x[1] = std::max(x[1], vec.x);
