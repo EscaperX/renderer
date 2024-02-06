@@ -68,12 +68,16 @@ namespace cc
         float z;
         // dz along x and along y
         float dzdx, dzdy;
+
+        // actually be private
         int dx, dy, dx1, dy1, px, py;
 
+        bool in;
         uint32_t tri_id, pair_id;
 
-        ActiveEdge(int x, int y, float dzdx, float dzdy)
+        ActiveEdge(int xs, int ys, int xe, int ye, float z, float dzdx, float dzdy, bool flag, uint32_t tri_id) : xs(xs), ys(ys), xe(xe), ye(ye), z(z), dzdx(dzdx), dzdy(dzdy), in(flag), tri_id(tri_id)
         {
+
             dx = xe - xs;
             dy = ye - ys;
             dx1 = fabs(dx);
@@ -83,6 +87,11 @@ namespace cc
         }
         void next_line()
         {
+            if (dy1 == 0)
+            {
+                ys++;
+                return;
+            }
             // acute angle
             if (dy1 <= dx1)
             {
@@ -127,7 +136,7 @@ namespace cc
         }
     };
 
-    auto scanline_raster(std::vector<Vertex> const &vertex_buffer, std::vector<uint32_t> const &index_buffer, int height, int width) -> std::vector<Fragment>;
+    // auto scanline_raster(std::vector<Vertex> const &vertex_buffer, std::vector<uint32_t> const &index_buffer, int height, int width) -> std::vector<Fragment>;
 
     auto simple_scanline_raster(std::vector<Vertex> const &vertex_buffer, std::vector<uint32_t> const &index_buffer, int height, int width) -> std::vector<Fragment>;
 

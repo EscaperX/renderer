@@ -45,7 +45,7 @@ namespace cc
         return std::move(res);
     }
 
-    auto create_edge(math::Vector4f const &v0, math::Vector4f const &v1, math::Vector4f const &v2, uint32_t index, std::vector<std::vector<ActiveEdgePair>> &edge_list) -> void
+    auto create_edge(math::Vector4f const &v0, math::Vector4f const &v1, math::Vector4f const &v2, uint32_t index, std::vector<std::vector<ActiveEdge>> &edge_list) -> void
     {
         auto points = std::array<math::Vector4f, 3>{v0, v1, v2};
 
@@ -62,20 +62,17 @@ namespace cc
         auto c = ((points[1].x - points[0].x) * (points[2].y - points[0].y) - (points[1].y - points[0].y) * (points[2].x - points[0].x));
         auto d = (0 - (a * points[0].x + b * points[0].y + c * points[0].z));
 
-        auto edge_constructor = [&](int startl, int endl, int startr, int endr) -> ActiveEdgePair
+        auto edge_constructor = [&](int l, int r, bool flag) -> ActiveEdge
         {
-            return ActiveEdgePair{
-                points[startl].x,
-                points[startl].z,
-                ((points[endl].y - points[startl].y < eps) ? 0 : (points[endl].x - points[startl].x) / (points[endl].y - points[startl].y)), // dxdy
-                points[startr].x,
-                points[startr].z,
-                ((points[endr].y - points[startr].y < eps) ? 0 : (points[endr].x - points[startr].x) / (points[endr].y - points[startr].y)), // dxdy
-
-                int(points[startl].y),                  // start_y
-                int(points[endl].y - points[startl].y), // dy_remain
-                (c == 0 ? 0 : -a / c),                  // dzdx
-                (c == 0 ? 0 : -b / c),                  // dzdy
+            return ActiveEdge{
+                int(points[l].x),
+                int(points[l].y),
+                int(points[r].x),
+                int(points[r].y),
+                points[l].z,
+                (c == 0 ? 0 : -a / c), // dzdx
+                (c == 0 ? 0 : -b / c), // dzdy
+                flag,
                 index};
         };
 
@@ -90,9 +87,11 @@ namespace cc
             if (points[0].x > points[1].x)
                 std::swap(points[0], points[1]);
 
-            auto edge = edge_constructor(0, 2, 1, 2);
+            auto edge1 = edge_constructor(0, 2, true);
+            auto edge2 = edge_constructor(1, 2, false);
 
-            edge_list[edge.start_y].push_back(edge);
+            edge_list[edge1.ys].push_back(edge1);
+            edge_list[edge2.ys].push_back(edge2);
         }
         // \/
         else if (points[1].y == points[2].y)
@@ -100,46 +99,42 @@ namespace cc
             if (points[1].x > points[2].x)
                 std::swap(points[1], points[2]);
 
-            auto edge = edge_constructor(0, 1, 0, 2);
+            auto edge1 = edge_constructor(0, 1, true);
+            auto edge2 = edge_constructor(0, 2, false);
 
-            edge_list[edge.start_y].push_back(edge);
+            edge_list[edge1.ys].push_back(edge1);
+            edge_list[edge2.ys].push_back(edge2);
         }
         else
         {
-            auto edges = std::array<ActiveEdgePair, 2>{};
             if (c > 0)
             {
-                edges[0] = edge_constructor(0, 2, 0, 1);
-                edges[0].dy_remain = int(points[1].y - points[0].y);
-
-                edges[1] = edge_constructor(0, 2, 1, 2);
-                auto delta_x = edges[0].dy_remain * edges[1].dxdyl;
-                edges[1].start_y = int(points[1].y);
-                edges[1].dy_remain = int(points[2].y - points[1].y);
-                edges[1].xl += delta_x;
-                edges[1].zl += delta_x * edges[1].dzdx + edges[0].dy_remain * edges[1].dzdy;
+                auto edge1 = edge_constructor(0, 2, true);
+                auto edge2 = edge_constructor(0, 1, false);
+                auto edge3 = edge_constructor(1, 2, false);
+                edge3.next_line();
+                edge_list[edge1.ys].push_back(edge1);
+                edge_list[edge2.ys].push_back(edge2);
+                if (!edge3.terminate())
+                    edge_list[edge3.ys].push_back(edge3);
             }
             else
             {
-                edges[0] = edge_constructor(0, 1, 0, 2);
-                edges[0].dy_remain = int(points[1].y - points[0].y);
-
-                edges[1] = edge_constructor(1, 2, 0, 2);
-                auto delta_x = edges[0].dy_remain * edges[1].dxdyr;
-                edges[1].start_y = int(points[1].y);
-                edges[1].dy_remain = int(points[2].y - points[1].y);
-                edges[1].xr += delta_x;
-                edges[1].zr += delta_x * edges[1].dzdx + edges[0].dy_remain * edges[1].dzdy;
+                auto edge1 = edge_constructor(0, 1, true);
+                auto edge2 = edge_constructor(1, 2, true);
+                edge2.next_line();
+                auto edge3 = edge_constructor(0, 2, false);
+                edge_list[edge1.ys].push_back(edge1);
+                edge_list[edge2.ys].push_back(edge2);
+                edge_list[edge3.ys].push_back(edge3);
             }
-            edge_list[edges[0].start_y].push_back(edges[0]);
-            edge_list[edges[1].start_y].push_back(edges[1]);
         }
     }
 
     auto simple_scanline_raster(std::vector<Vertex> const &vertex_buffer, std::vector<uint32_t> const &index_buffer, int height, int width) -> std::vector<Fragment>
     {
-        auto edges = std::vector<std::vector<ActiveEdgePair>>{size_t(height), std::vector<ActiveEdgePair>{}};
-        std::vector<ActiveEdgePair> active_edges;
+        auto edges = std::vector<std::vector<ActiveEdge>>{size_t(height), std::vector<ActiveEdge>{}};
+        std::vector<ActiveEdge> active_edges;
         std::vector<Fragment> res;
         for (int i = 0; i < index_buffer.size(); i += 3)
         {
@@ -155,22 +150,31 @@ namespace cc
         {
             for (auto &edge : edges[cur_y])
                 active_edges.push_back(edge);
+            std::sort(active_edges.begin(), active_edges.end(), [](ActiveEdge const &a, ActiveEdge const &b)
+                      { if (a.tri_id == b.tri_id) return a.in;
+                        return a.tri_id < b.tri_id; });
             for (int i = 0; i < active_edges.size(); i++)
-            {
-                auto &cur_edge = active_edges[i];
-                float z = cur_edge.zl;
-                for (float x = cur_edge.xl; x <= cur_edge.xr; x += 1, z += cur_edge.dzdx)
+                if (active_edges[i].in)
                 {
-                    auto id = index_buffer[cur_edge.tri_id];
-                    res.emplace_back(math::Vector2i{int(x), cur_y}, z, vertex_buffer[id].normal, vertex_buffer[id].uv);
+                    int j = i + 1;
+                    if (active_edges[i].tri_id == active_edges[j].tri_id)
+                    {
+                        auto &cur_edge1 = active_edges[i];
+                        auto &cur_edge2 = active_edges[j];
+                        float z = cur_edge1.z;
+                        for (int x = cur_edge1.xs; x <= cur_edge2.xs; x += 1, z += cur_edge1.dzdx)
+                        {
+                            auto id = index_buffer[cur_edge1.tri_id];
+                            res.emplace_back(math::Vector2i{x, cur_y}, z, vertex_buffer[id].normal, vertex_buffer[id].uv);
+                        }
+                    }
                 }
-            }
 
             for (auto &edge : active_edges)
             {
                 edge.next_line();
             }
-            std::erase_if(active_edges, [](ActiveEdgePair e)
+            std::erase_if(active_edges, [](ActiveEdge e)
                           { return e.terminate(); });
         }
         return res;
@@ -178,8 +182,8 @@ namespace cc
 
     auto scanline_raster(std::vector<Vertex> const &vertex_buffer, std::vector<uint32_t> const &index_buffer, int height, int width) -> std::vector<Fragment>
     {
-        auto edges = std::vector<std::vector<ActiveEdgePair>>{size_t(height), std::vector<ActiveEdgePair>{}};
-        std::vector<ActiveEdgePair> active_edges;
+        auto edges = std::vector<std::vector<ActiveEdge>>{size_t(height), std::vector<ActiveEdge>{}};
+        std::vector<ActiveEdge> active_edges;
         std::vector<Fragment> res;
         for (int i = 0; i < index_buffer.size(); i += 3)
         {
@@ -196,23 +200,23 @@ namespace cc
             for (auto &edge : edges[cur_y])
                 active_edges.push_back(edge);
 
-            std::sort(active_edges.begin(), active_edges.end(), [](ActiveEdgePair const &a, ActiveEdgePair const &b) -> bool
-                      { if (a.xl < b.xl) return true; 
-                        if (a.xl == b.xl && a.zl == b.zl) return a.dzdx < b.dzdx;
-                        if (a.xl == b.xl) return a.zl < b.zl; });
+            std::sort(active_edges.begin(), active_edges.end(), [](ActiveEdge const &a, ActiveEdge const &b) -> bool
+                      { if (a.xs < b.xs) return true;
+                        if (a.xs == b.xs && a.z == b.z) return a.dzdx < b.dzdx;
+                        if (a.xs == b.xs) return a.z < b.z; });
 
-            std::stack<ActiveEdgePair> candidate_edge;
+            std::stack<ActiveEdge> candidate_edge;
             float last_x = 0;
 
             for (int i = 0; i < active_edges.size(); i++)
             {
                 // insert a edge;
                 auto &cur_edge = active_edges[i];
-                        }
+            }
 
             for (auto &edge : active_edges)
                 edge.next_line();
-            std::erase_if(active_edges, [](ActiveEdgePair e)
+            std::erase_if(active_edges, [](ActiveEdge e)
                           { return e.terminate(); });
         }
         return res;
