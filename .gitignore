@@ -4,4 +4,3 @@ build
 3rdparty/nlohmann/*
 .vscode/
 wsl/
-asset/
