@@ -8,8 +8,8 @@ namespace cc
 {
     struct OctreeConfig
     {
-        uint16_t max_depth = 3;
-        uint16_t max_data_cnt = 10;
+        int max_depth = 3;
+        int max_data_cnt = 10;
     };
     struct NodeData
     {

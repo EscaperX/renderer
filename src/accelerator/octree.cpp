@@ -10,9 +10,9 @@ namespace cc
         for (int i = 0; i < 8; i++)
         {
             auto new_center = center;
-            new_center.x += new_extent.x * (i & 4 ? -0.5f : 0.5f);
-            new_center.y += new_extent.y * (i & 2 ? -0.5f : 0.5f);
-            new_center.z += new_extent.z * (i & 1 ? -0.5f : 0.5f);
+            new_center.x += new_extent.x * (i & 4 ? -1.f : 1.f);
+            new_center.y += new_extent.y * (i & 2 ? -1.f : 1.f);
+            new_center.z += new_extent.z * (i & 1 ? -1.f : 1.f);
             auto new_bbx = AABB{new_center - new_extent, new_center + new_extent};
             auto new_node = new OctreeNode{new_bbx, node->depth + 1, true};
             node->children.push_back(new_node);
@@ -36,16 +36,20 @@ namespace cc
         }
         auto inside_flag = false;
         for (int i = 0; i < 8; i++)
-            if (node->children[i]->bbx.inside(bbx))
+            if (node->children[i]->bbx.intersect(bbx))
             {
                 insert(node->children[i], data, bbx, config);
                 inside_flag = true;
-                break;
+                // break;
             }
         if (!inside_flag)
         {
-            node->data.push_back(data);
+            puts("fuck");
         }
+        // if (!inside_flag)
+        // {
+        //     node->data.push_back(data);
+        // }
     }
     auto build_octree(Model const &model, OctreeConfig const &config) -> std::unique_ptr<OctreeNode>
     {
