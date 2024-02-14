@@ -1,5 +1,6 @@
 #pragma once
 #include "simple-buffer.hpp"
+#include "raster/hiez.hpp"
 
 #include <gl/application.hpp>
 #include <glad/glad.h>
@@ -24,5 +25,9 @@ namespace cc
         std::vector<ModelPtr> models;
         std::unique_ptr<OctreeNode> scene_octree;
         Camera camera;
+
+        // HieZ occlusion
+        Buffer2D<float> last_frame_depth;
+        HieZbuffer hiez;
     };
 };

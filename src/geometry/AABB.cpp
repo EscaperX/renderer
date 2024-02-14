@@ -75,9 +75,12 @@ namespace cc
     }
     bool AABB::intersect(const AABB &box) const
     {
-        if (box.x[1] < x[0] || box.x[0] > x[1])
+        const float eps = 1e-5;
+        if (box.x[1] - x[0] < -eps || box.x[0] - x[1] > eps)
             return false;
-        if (box.y[1] < y[0] || box.y[0] > y[1])
+        if (box.y[1] - y[0] < -eps || box.y[0] - y[1] > eps)
+            return false;
+        if (box.z[1] - z[0] < -eps || box.z[0] - z[1] > eps)
             return false;
         return true;
     }
