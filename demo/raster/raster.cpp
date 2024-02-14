@@ -55,6 +55,10 @@ namespace cc
     {
         return color.data();
     }
+    auto Raster::depth_buffer() const -> Buffer2D<float> const *
+    {
+        return &depth;
+    }
     auto Raster::get_depth() const -> float const *
     {
         return depth.data();

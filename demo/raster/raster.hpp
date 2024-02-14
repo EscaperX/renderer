@@ -42,6 +42,7 @@ namespace cc
         // auto clip() -> void;
         auto rasterize() -> void;
         auto mutable_color() -> Buffer2D<math::Vector3u8i> &;
+        auto depth_buffer() const -> Buffer2D<float> const *;
         auto get_color() const -> math::Vector3u8i const *;
         auto get_depth() const -> float const *;
 
