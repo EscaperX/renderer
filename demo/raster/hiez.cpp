@@ -6,7 +6,7 @@ namespace cc
     HieZbuffer::HieZbuffer(int width, int height)
     {
         int l = std::max(height, width);
-        screen_box = AABB(0, height - 1, 0, width - 1, 0, 0);
+        screen_box = AABB(0, height - 1, 0, width - 1, -100, 100);
 
         // align buffer size
         buffer_height = buffer_width = 1;

@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include "rasterapp.hpp"
 #include "raster/raster.hpp"
 #include "raster/draw_line.hpp"
@@ -9,19 +11,25 @@
 #include "gl/imgui/imgui_impl_glfw.h"
 #include "gl/imgui/imgui_impl_opengl3.h"
 
+#include <algorithm>
+#include <limits>
 #include <queue>
+#include <unordered_map>
+
 namespace cc
 {
     auto scene_list = std::vector<std::string>{"cube", "plane", "bunny", "dragon", "house", "sponza"};
     static bool vis_flag = false;
+    static bool hiez_occl_flag = false;
     static bool occlusion_flag = false;
     static auto model_scale = math::Vector3f{0.1f};
     static auto model_translate = math::Vector3f{0.0f};
     static auto model_rotate = math::Vector3f{0.0f};
+    static auto octree_config = OctreeConfig{};
 
-    RasterApp::RasterApp() : camera(m_resolution_width, m_resolution_height)
+    RasterApp::RasterApp() : camera(m_resolution_width, m_resolution_height), hiez(m_resolution_width, m_resolution_height)
     {
-        models.push_back(load_model("D:/renderer/asset/cube.obj"));
+        models.push_back(load_model("D:/renderer/asset/sponza.obj"));
         scene_octree = build_octree(*models.front(), {});
         // models.push_back(load_model("D:/renderer/asset/plane.obj"));
     }
@@ -50,6 +58,7 @@ namespace cc
         {
             std::queue<OctreeNode *> q;
             q.push(scene_octree.get());
+            std::unordered_map<uint32_t, bool> has_drawed;
             while (!q.empty())
             {
                 auto node = q.front();
@@ -59,14 +68,40 @@ namespace cc
                 if (!camera_frustum.on_frustum(bbx))
                     continue;
 
-                for (auto const &node_data : node->data)
+                if (hiez_occl_flag)
                 {
-                    auto &mesh = models[0]->meshes[node_data.mesh_id];
-                    raster.make_drawcall({std::span{mesh.positions.data(), mesh.positions.size()},
-                                          std::span{mesh.normals.data(), mesh.normals.size()},
-                                          std::span{mesh.uvs.data(), mesh.uvs.size()},
-                                          std::span{mesh.indices.data(), mesh.indices.size()}});
+                    auto verts = node->bbx.get_vertices();
+                    float x[2], y[2], z[2];
+                    x[0] = y[0] = z[0] = std::numeric_limits<float>::max();
+                    x[1] = y[1] = z[1] = std::numeric_limits<float>::min();
+                    for (auto &vert : verts)
+                    {
+                        auto temp_v = mvp * math::Vector4f{vert, 1.0f};
+                        temp_v /= temp_v.w;
+                        temp_v.x = 0.5f * (m_resolution_width - 1.0f) * (temp_v.x + 1.0f);
+                        temp_v.y = 0.5f * (m_resolution_height - 1.0f) * (temp_v.y + 1.0f);
+                        x[0] = std::min(x[0], temp_v.x);
+                        y[0] = std::min(y[0], temp_v.y);
+                        z[0] = std::min(z[0], temp_v.z);
+                        x[1] = std::max(x[1], temp_v.x);
+                        y[1] = std::max(y[1], temp_v.y);
+                        z[1] = std::max(z[1], temp_v.z);
+                    }
+                    auto transformed_box = AABB{x[0], x[1], y[0], y[1], z[0], z[1]};
+                    if (hiez.is_hidden(transformed_box))
+                        continue;
                 }
+
+                for (auto const &node_data : node->data)
+                    if (!has_drawed.count(node_data.mesh_id))
+                    {
+                        auto &mesh = models[0]->meshes[node_data.mesh_id];
+                        raster.make_drawcall({std::span{mesh.positions.data(), mesh.positions.size()},
+                                              std::span{mesh.normals.data(), mesh.normals.size()},
+                                              std::span{mesh.uvs.data(), mesh.uvs.size()},
+                                              std::span{mesh.indices.data(), mesh.indices.size()}});
+                        has_drawed[node_data.mesh_id] = true;
+                    }
                 for (auto ch : node->children)
                     if (!ch->is_empty)
                         q.push(ch);
@@ -127,6 +162,11 @@ namespace cc
     {
         auto &raster = Raster::instance();
         glTextureSubImage2D(texture, 0, 0, 0, m_resolution_width, m_resolution_height, GL_RGB, GL_UNSIGNED_BYTE, reinterpret_cast<uint8_t const *>(raster.get_color()));
+
+        if (hiez_occl_flag)
+        {
+            hiez.initialize(raster.depth_buffer());
+        }
 
         static bool show_demo_window = true;
         if (show_demo_window)
@@ -215,6 +255,12 @@ namespace cc
             {
                 ImGui::Checkbox("Visualization", &vis_flag);
                 ImGui::Checkbox("Occlusion", &occlusion_flag);
+                ImGui::Checkbox("Occlusion with HieZ", &hiez_occl_flag);
+                ImGui::Separator();
+                static int depth = 3;
+                if (ImGui::SliderInt("Depth", &depth, 0, 10)) {
+                    scene_octree = build_octree(*models.front(), OctreeConfig{depth, 0});
+                }
             }
         }
         ImGui::End();

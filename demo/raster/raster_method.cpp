@@ -35,7 +35,7 @@ namespace cc
                         float w[3] = {vo_0.position.w, vo_1.position.w, vo_2.position.w};
                         float z[3] = {p1.z, p2.z, p3.z};
                         auto [alpha, beta, gamma] = compute_barycentric_2D(x + 0.5f, y + 0.5f, p1, p2, p3);
-                        auto interpolated_normal = alpha * vo_0.normal + beta * vo_1.normal + gamma * vo_2.normal;
+                        auto interpolated_normal = vo_0.normal;// alpha * vo_0.normal + beta * vo_1.normal + gamma * vo_2.normal;
                         auto interpolated_uv = alpha * vo_0.uv + beta * vo_1.uv + gamma * vo_2.uv;
                         float Z = 1.0f / (alpha / w[0] + beta / w[1] + gamma / w[2]);
                         float zp = alpha * z[0] / w[0] + beta * z[1] / w[1] + gamma * z[2] / w[2];
@@ -164,7 +164,7 @@ namespace cc
                         auto &cur_edge1 = active_edges[i];
                         auto &cur_edge2 = active_edges[j];
                         float z = cur_edge1.z;
-                        for (int x = cur_edge1.xs; x <= cur_edge2.xs; x += 1, z += cur_edge1.dzdx)
+                        for (int x = cur_edge1.xs; x < cur_edge2.xs; x += 1, z += cur_edge1.dzdx)
                         {
                             auto id = index_buffer[cur_edge1.tri_id];
                             res.emplace_back(math::Vector2i{x, cur_y}, z, vertex_buffer[id].normal, vertex_buffer[id].uv);
