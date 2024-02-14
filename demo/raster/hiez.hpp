@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include <math/AABB.h>
+#include <geometry/AABB.h>
 #include "../simple-buffer.hpp"
 
 namespace cc

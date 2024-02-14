@@ -8,7 +8,7 @@ namespace cc
         bool loadout = Loader.LoadFile(path.string());
         assert(loadout);
 
-        ModelPtr model = std::make_shared<Model>();
+        auto model = std::make_shared<Model>();
         model->submesh_cnt = Loader.LoadedMeshes.size();
         model->meshes.reserve(model->submesh_cnt);
 
@@ -19,7 +19,6 @@ namespace cc
 
             model->vertex_cnt += mesh.Vertices.size();
             model->face_cnt += mesh.Indices.size() / 3;
-
             for (auto vert : mesh.Vertices)
             {
                 cur_mesh.positions.emplace_back(vert.Position.X, vert.Position.Y, vert.Position.Z);

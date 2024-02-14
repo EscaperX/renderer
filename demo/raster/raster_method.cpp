@@ -4,6 +4,8 @@
 #include <stack>
 #include <iostream>
 #include <algorithm>
+#include <unordered_map>
+
 namespace cc
 {
     const float eps = 1e-5;
@@ -153,7 +155,7 @@ namespace cc
             std::sort(active_edges.begin(), active_edges.end(), [](ActiveEdge const &a, ActiveEdge const &b)
                       { if (a.tri_id == b.tri_id) return a.in;
                         return a.tri_id < b.tri_id; });
-            for (int i = 0; i < active_edges.size(); i++)
+            for (int i = 0; i + 1 < active_edges.size(); i++)
                 if (active_edges[i].in)
                 {
                     int j = i + 1;
@@ -201,17 +203,65 @@ namespace cc
                 active_edges.push_back(edge);
 
             std::sort(active_edges.begin(), active_edges.end(), [](ActiveEdge const &a, ActiveEdge const &b) -> bool
-                      { if (a.xs < b.xs) return true;
-                        if (a.xs == b.xs && a.z == b.z) return a.dzdx < b.dzdx;
-                        if (a.xs == b.xs) return a.z < b.z; });
+                      { if (a.xs == b.xs && a.z == b.z) return a.dzdx < b.dzdx;
+                        if (a.xs == b.xs) return a.z < b.z; 
+                        return a.xs < b.xs; });
 
-            std::stack<ActiveEdge> candidate_edge;
-            float last_x = 0;
-
+            std::stack<ActiveEdge> candidate_edges;
+            int last_x = -1;
+            auto has_out = std::unordered_map<uint32_t, bool>{};
             for (int i = 0; i < active_edges.size(); i++)
             {
                 // insert a edge;
                 auto &cur_edge = active_edges[i];
+                if (cur_edge.in)
+                {
+                    if (candidate_edges.empty())
+                    {
+                        if (last_x == -1)
+                            last_x = cur_edge.xs;
+                        candidate_edges.push(cur_edge);
+                    }
+                    else
+                    {
+                        auto &top_edge = candidate_edges.top();
+                        while (has_out.count(top_edge.tri_id))
+                        {
+                            candidate_edges.pop();
+                            top_edge = candidate_edges.top();
+                        }
+                        auto delta_x = cur_edge.xs - top_edge.xs;
+                        if (top_edge.z + delta_x * top_edge.dzdx <= cur_edge.z)
+                        {
+                            auto cur_z = top_edge.z + (last_x - top_edge.xs) * top_edge.dzdx;
+                            for (int x = last_x; x <= cur_edge.xs; x++)
+                            {
+                                auto &triangle = vertex_buffer[index_buffer[top_edge.tri_id]];
+                                res.emplace_back(math::Vector2i{x, cur_y}, cur_z, triangle.normal, triangle.uv);
+                                cur_z += top_edge.dzdx;
+                            }
+                            last_x = cur_edge.xs;
+                        }
+                        candidate_edges.push(cur_edge);
+                    }
+                }
+                else
+                {
+                    auto &top_edge = candidate_edges.top();
+                    if (top_edge.tri_id == cur_edge.tri_id)
+                    {
+                        auto cur_z = top_edge.z + (last_x - top_edge.xs) * top_edge.dzdx;
+                        for (int x = last_x; x <= cur_edge.xs; x++)
+                        {
+                            auto &triangle = vertex_buffer[index_buffer[top_edge.tri_id]];
+                            res.emplace_back(math::Vector2i{x, cur_y}, cur_z, triangle.normal, triangle.uv);
+                            cur_z += top_edge.dzdx;
+                        }
+                        last_x = cur_edge.xs;
+                    }
+                    else
+                        has_out[cur_edge.tri_id] = true;
+                }
             }
 
             for (auto &edge : active_edges)

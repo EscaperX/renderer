@@ -19,12 +19,14 @@ namespace cc
         enum class RasterMode : int
         {
             Line,
-            Polygon
+            Triangle,
+            None
         };
         enum class RasterMethod : int
         {
             Groundtruth,
-            Scanline
+            Scanline,
+            AdvancedScanline
         };
 
         static auto instance() -> Raster &;
@@ -39,6 +41,7 @@ namespace cc
         // auto transform() -> void;
         // auto clip() -> void;
         auto rasterize() -> void;
+        auto mutable_color() -> Buffer2D<math::Vector3u8i> &;
         auto get_color() const -> math::Vector3u8i const *;
         auto get_depth() const -> float const *;
 
