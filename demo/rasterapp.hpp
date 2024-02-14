@@ -7,6 +7,7 @@
 #include <memory>
 #include <resource/model.hpp>
 #include <resource/camera.hpp>
+#include <accelerator/octree.hpp>
 namespace cc
 {
     class RasterApp : public Application
@@ -21,6 +22,7 @@ namespace cc
     private:
         GLuint texture; // Final display texture sent to imgui
         std::vector<ModelPtr> models;
+        std::unique_ptr<OctreeNode> scene_octree;
         Camera camera;
     };
 };

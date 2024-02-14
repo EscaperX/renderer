@@ -38,4 +38,17 @@ namespace cc::math
 		result[3][2] = -(far + near) / (far - near);
 		return result;
 	}
+	auto model_matrix(Vector3f const &translate, Vector3f const &rotate, Vector3f const &scale) -> Matrix4f
+	{
+		auto res = math::Matrix4f{1.0f};
+
+		res = glm::translate(res, translate);
+
+		res = glm::rotate(res, glm::radians(rotate.x), math::Vector3f{1.0f, 0.0f, 0.0f});
+		res = glm::rotate(res, glm::radians(rotate.y), math::Vector3f{0.0f, 1.0f, 0.0f});
+		res = glm::rotate(res, glm::radians(rotate.z), math::Vector3f{0.0f, 0.0f, 1.0f});
+
+		res = glm::scale(res, scale);
+		return res;
+	}
 }

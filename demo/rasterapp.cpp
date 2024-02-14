@@ -1,5 +1,7 @@
 #include "rasterapp.hpp"
 #include "raster/raster.hpp"
+#include "raster/draw_line.hpp"
+#include <math/transform.hpp>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -7,13 +9,20 @@
 #include "gl/imgui/imgui_impl_glfw.h"
 #include "gl/imgui/imgui_impl_opengl3.h"
 
+#include <queue>
 namespace cc
 {
-    std::vector<std::string> scene_list = {"cube", "plane", "bunny", "dragon", "house", "sponza"};
+    auto scene_list = std::vector<std::string>{"cube", "plane", "bunny", "dragon", "house", "sponza"};
+    static bool vis_flag = false;
+    static bool occlusion_flag = false;
+    static auto model_scale = math::Vector3f{0.1f};
+    static auto model_translate = math::Vector3f{0.0f};
+    static auto model_rotate = math::Vector3f{0.0f};
 
     RasterApp::RasterApp() : camera(m_resolution_width, m_resolution_height)
     {
         models.push_back(load_model("D:/renderer/asset/cube.obj"));
+        scene_octree = build_octree(*models.front(), {});
         // models.push_back(load_model("D:/renderer/asset/plane.obj"));
     }
     RasterApp::~RasterApp() {}
@@ -31,19 +40,88 @@ namespace cc
         auto &raster = Raster::instance();
         raster.clear_color();
         raster.clear_depth();
-        raster.initialize(math::Matrix4f{1.0f}, camera.view(), camera.project());
+        auto model_mat = math::model_matrix(model_translate, model_rotate, model_scale);
+        raster.initialize(model_mat, camera.view(), camera.project());
         raster.set_viewport(m_resolution_width, m_resolution_height);
 
-        for (auto model : models)
-            for (auto &mesh : model->meshes)
+        auto mvp = camera.project() * camera.view() * model_mat;
+        auto camera_frustum = camera.frustum();
+        if (occlusion_flag)
+        {
+            std::queue<OctreeNode *> q;
+            q.push(scene_octree.get());
+            while (!q.empty())
             {
-                raster.make_drawcall({std::span{mesh.positions.data(), mesh.positions.size()},
-                                      std::span{mesh.normals.data(), mesh.normals.size()},
-                                      std::span{mesh.uvs.data(), mesh.uvs.size()},
-                                      std::span{mesh.indices.data(), mesh.indices.size()}});
-            }
+                auto node = q.front();
+                q.pop();
+                auto bbx = node->bbx;
+                bbx.transform(model_mat);
+                if (!camera_frustum.on_frustum(bbx))
+                    continue;
 
+                for (auto const &node_data : node->data)
+                {
+                    auto &mesh = models[0]->meshes[node_data.mesh_id];
+                    raster.make_drawcall({std::span{mesh.positions.data(), mesh.positions.size()},
+                                          std::span{mesh.normals.data(), mesh.normals.size()},
+                                          std::span{mesh.uvs.data(), mesh.uvs.size()},
+                                          std::span{mesh.indices.data(), mesh.indices.size()}});
+                }
+                for (auto ch : node->children)
+                    if (!ch->is_empty)
+                        q.push(ch);
+            }
+        }
+        else // Naive Processing
+        {
+            for (auto model : models)
+                for (auto &mesh : model->meshes)
+                {
+                    raster.make_drawcall({std::span{mesh.positions.data(), mesh.positions.size()},
+                                          std::span{mesh.normals.data(), mesh.normals.size()},
+                                          std::span{mesh.uvs.data(), mesh.uvs.size()},
+                                          std::span{mesh.indices.data(), mesh.indices.size()}});
+                }
+        }
         raster.rasterize();
+
+        if (vis_flag)
+        {
+            std::queue<OctreeNode *> q;
+            q.push(scene_octree.get());
+            while (!q.empty())
+            {
+                auto node = q.front();
+                q.pop();
+                if (node->is_empty)
+                    continue;
+                if (node->data.size() > 0)
+                {
+                    auto verts = node->bbx.get_vertices();
+                    auto origin_verts = verts;
+                    for (auto &vert : verts)
+                    {
+                        auto v = camera.project() * camera.view() * model_mat * math::Vector4f{vert, 1.0f};
+                        auto w = v.w;
+                        v /= w;
+                        v.x = 0.5f * (m_resolution_width - 1.0f) * (v.x + 1.0f);
+                        v.y = 0.5f * (m_resolution_height - 1.0f) * (v.y + 1.0f);
+                        vert = v.xyz;
+                    }
+                    for (int i = 0; i < 8; i++)
+                        for (int j = i + 1; j < 8; j++)
+                        {
+                            int x = (origin_verts[i].x == origin_verts[j].x) + (origin_verts[i].y == origin_verts[j].y) + (origin_verts[i].z == origin_verts[j].z);
+                            if (x == 2)
+                            {
+                                draw_line(verts[i], verts[j], raster.mutable_color());
+                            }
+                        }
+                }
+                for (auto child : node->children)
+                    q.push(child);
+            }
+        }
     }
     auto RasterApp::render() -> void
     {
@@ -65,6 +143,12 @@ namespace cc
         static bool config_window = true;
         ImGui::Begin("Config", &config_window);
         {
+            if (ImGui::CollapsingHeader("Model"))
+            {
+                ImGui::SliderFloat3("Translate", reinterpret_cast<float *>(&model_translate), -100.f, 100.f, "%.3f", 0);
+                ImGui::SliderFloat3("Rotate", reinterpret_cast<float *>(&model_rotate), 0.0f, 360.f, "%.3f", 0);
+                ImGui::SliderFloat3("scale", reinterpret_cast<float *>(&model_scale), 0.f, 10.f, "%.3f", 0);
+            }
             if (ImGui::CollapsingHeader("Camera"))
             {
                 if (ImGui::SliderFloat3("Position", reinterpret_cast<float *>(&camera.m_position), -100.f, 200.f, "%.3f", 0))
@@ -78,6 +162,8 @@ namespace cc
                 ImGui::Text("Render Mode");
                 ImGui::SameLine();
                 static int mode = 1;
+                ImGui::RadioButton("None", &mode, 2);
+                ImGui::SameLine();
                 ImGui::RadioButton("Line", &mode, 0);
                 ImGui::SameLine();
                 ImGui::RadioButton("Triangle", &mode, 1);
@@ -92,6 +178,8 @@ namespace cc
                 ImGui::RadioButton("GroundTrue", &method, 0);
                 ImGui::SameLine();
                 ImGui::RadioButton("Scanline", &method, 1);
+                ImGui::SameLine();
+                ImGui::RadioButton("AdvancedScanline", &method, 2);
                 ImGui::SameLine();
                 Raster::instance().set_render_method(Raster::RasterMethod{method});
 
@@ -118,9 +206,15 @@ namespace cc
                         models.clear();
                         std::string path = "D:/renderer/asset/" + scene_list[selected] + ".obj";
                         models.push_back(load_model(path.c_str()));
+                        scene_octree = build_octree(*models.front(), {});
                     }
                     ImGui::TreePop();
                 }
+            }
+            if (ImGui::CollapsingHeader("Accelerator"))
+            {
+                ImGui::Checkbox("Visualization", &vis_flag);
+                ImGui::Checkbox("Occlusion", &occlusion_flag);
             }
         }
         ImGui::End();

@@ -3,7 +3,7 @@
 #include "clip.hpp"
 #include "raster_method.hpp"
 
-#include <math/AABB.h>
+#include <geometry/AABB.h>
 #include <geometry/triangle.hpp>
 
 #include <gl/imgui/imgui.h>
@@ -47,6 +47,10 @@ namespace cc
     {
         depth.clear(FLT_MAX);
     }
+    auto Raster::mutable_color() -> Buffer2D<math::Vector3u8i> &
+    {
+        return color;
+    }
     auto Raster::get_color() const -> math::Vector3u8i const *
     {
         return color.data();
@@ -79,7 +83,7 @@ namespace cc
         // Should be part of vertex shader
         float far = project_mat[2][3] / (project_mat[2][2] - 1);
         float near = project_mat[2][3] / (project_mat[2][2] + 1);
-        auto mvp = project_mat * view_mat;
+        auto mvp = project_mat * view_mat * model_mat;
         auto inv_trans = glm::transpose(glm::inverse(view_mat));
 
         if (enable_zcull)
@@ -220,14 +224,18 @@ namespace cc
                 statistics.shading_time += get_duration(_start);
                 continue;
             }
+            if (raster_mode == RasterMode::None)
+                continue;
 
             // Raster triangles
             fragment_buffer.clear();
             fragment_buffer.reserve(index_buffer.size());
             if (raster_method == RasterMethod::Groundtruth)
                 fragment_buffer = ground_truth_raster(vertex_buffer, index_buffer);
-            else
+            else if (raster_method == RasterMethod::Scanline)
                 fragment_buffer = simple_scanline_raster(vertex_buffer, index_buffer, viewport_height, viewport_width);
+            else if (raster_method == RasterMethod::AdvancedScanline)
+                fragment_buffer = scanline_raster(vertex_buffer, index_buffer, viewport_height, viewport_width);
             statistics.raster_face_num += index_buffer.size() / 3;
             statistics.raster_fragment_num += fragment_buffer.size();
             statistics.raster_fragment_time += get_duration(_start);

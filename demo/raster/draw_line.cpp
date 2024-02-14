@@ -9,6 +9,11 @@ namespace cc
         auto x2 = end.x;
         auto y2 = end.y;
 
+        if (x1 < 0 || x2 < 0 || y1 < 0 || y2 < 0)
+            return;
+        if (x1 >= color.get_width() || x2 >= color.get_width() || y1 >= color.get_height() || y2 >= color.get_height())
+            return;
+
         math::Vector3u8i line_color = {255, 255, 255};
 
         int x, y, dx, dy, dx1, dy1, px, py, xe, ye, i;

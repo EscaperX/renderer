@@ -59,7 +59,11 @@ namespace cc
     {
         return math::Vector3f{x[0] + x[1], y[0] + y[1], z[0] + z[1]} * 0.5f;
     }
-    std::array<math::Vector3f, 8> AABB::get_vertices()
+    math::Vector3f AABB::get_extent() const
+    {
+        return math::Vector3f{x[1] - x[0], y[1] - y[0], z[1] - z[0]} * 0.5f;
+    }
+    std::array<math::Vector3f, 8> AABB::get_vertices() const
     {
         std::array<math::Vector3f, 8> res;
         int cnt = 0;
@@ -79,22 +83,55 @@ namespace cc
     }
     bool AABB::inside(math::Vector3f const &a, math::Vector3f const &b, math::Vector3f const &c) const
     {
-        auto judge_op = [&](math::Vector3f const &i) -> bool
-        {
-            if (i.x > x[1] || i.x <= x[0])
-            {
-                return false;
-            }
-            if (i.y > y[1] || i.y <= y[0])
-            {
-                return false;
-            }
-            if (i.z > z[1] || i.z <= z[0])
-            {
-                return false;
-            }
-        };
-        if (!judge_op(a) || !judge_op(b) || !judge_op(c))
+        if (!inside(a) || !inside(b) || !inside(c))
             return false;
+        return true;
+    }
+    bool AABB::inside(AABB const &bbx) const
+    {
+        auto verts = bbx.get_vertices();
+        bool flag = true;
+        for (auto const &vert : verts)
+        {
+            if (!inside(vert))
+            {
+                flag = false;
+                break;
+            }
+        }
+        return flag;
+    }
+
+    auto AABB::transform(math::Matrix4f const &mat) -> void
+    {
+        auto center = get_center();
+        auto extent = get_extent();
+
+        auto temp_res = (mat * math::Vector4f{center, 1.0f});
+        auto new_center = math::Vector3f{temp_res};
+
+        // basis from transform matrix
+        auto new_axis_x = math::Vector3f{mat[0]};
+        auto new_axis_y = math::Vector3f{mat[1]};
+        auto new_axis_z = math::Vector3f{mat[2]};
+
+        // scaled extent vector, not axis aligned
+        auto scaled_extent_x = new_axis_x * extent.x;
+        auto scaled_extent_y = new_axis_y * extent.y;
+        auto scaled_extent_z = new_axis_z * extent.z;
+
+        auto aligned_new_extent = math::Vector3f{};
+        aligned_new_extent.x = abs(scaled_extent_x.x) + abs(scaled_extent_y.x) + abs(scaled_extent_z.x);
+        aligned_new_extent.y = abs(scaled_extent_x.y) + abs(scaled_extent_y.y) + abs(scaled_extent_z.y);
+        aligned_new_extent.z = abs(scaled_extent_x.z) + abs(scaled_extent_y.z) + abs(scaled_extent_z.z);
+
+        auto new_pm = new_center - aligned_new_extent;
+        auto new_px = new_center + aligned_new_extent;
+        x[0] = new_pm.x;
+        x[1] = new_px.x;
+        y[0] = new_pm.y;
+        y[1] = new_px.y;
+        z[0] = new_pm.z;
+        z[1] = new_px.z;
     }
 }
