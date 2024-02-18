@@ -34,22 +34,11 @@ namespace cc
                 return;
             }
         }
-        auto inside_flag = false;
         for (int i = 0; i < 8; i++)
             if (node->children[i]->bbx.intersect(bbx))
             {
                 insert(node->children[i], data, bbx, config);
-                inside_flag = true;
-                // break;
             }
-        if (!inside_flag)
-        {
-            puts("fuck");
-        }
-        // if (!inside_flag)
-        // {
-        //     node->data.push_back(data);
-        // }
     }
     auto build_octree(Model const &model, OctreeConfig const &config) -> std::unique_ptr<OctreeNode>
     {
