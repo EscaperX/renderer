@@ -164,10 +164,14 @@ Tesla架构统一了不同着色器执行的硬件单元，而光栅管线仍然
 曲面细分是在GPU中为模型添加细节的重要方式。曲面细分的流程大致分为：
 1. 细分控制着色器（Tessellation Control Shader），决定patch细分的程度。
 2. 细分原语生成器（Tessellator），根据控制着色器的参数执行细分过程。
-3. 细分估算着色器（Tessellation Evaluation Shader），处理细分后的所有顶点。
+3. 细分计算着色器（Tessellation Evaluation Shader），处理细分后的所有顶点。
 
+控制着色器通过layout指定要输出的顶点数，也即一个patch要开的线程数。一个patch内的所有线程可以访问这个patch的所有输入（来自顶点着色器）和输出。
+而控制着色器输出的顶点作为细分计算着色器输入的数据，并为Tessellator设置gl_TessLevelInner和gl_TessLevelOuter。
 
+原语生成器会根据输入的信息，在抽象的几何原语上插入抽象patch中相对位置的归一化坐标，作为新的顶点。
 
+而细分计算着色器通过gl_TessCoord插值后得到新的顶点数据。
 
 通用计算中的GPU
 ====
